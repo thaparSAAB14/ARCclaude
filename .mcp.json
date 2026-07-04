@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "arcclaude": {
+      "command": "uv",
+      "args": ["--directory", ".", "run", "arcclaude"]
+    }
+  }
+}

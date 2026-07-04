@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+.pytest_cache/
+
+# uv
+uv.lock
+
+# ArcGIS scratch artifacts
+*.gdb/
+scratch/
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
+
+# Local-only Claude settings (keep .mcp.json — it's shared project config)
+.claude/settings.local.json
