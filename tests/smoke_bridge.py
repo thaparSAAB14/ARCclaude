@@ -96,6 +96,39 @@ fc
     check("describes polygons, 2 rows",
           d.get("shapeType") == "Polygon" and d.get("rowCount") == 2, str(d)[:400])
 
+    print("== create_features: GeoJSON -> shapefile on disk ==")
+    r = bridge.request("exec", code="import arcpy; print(arcpy.env.scratchFolder)")
+    scratch_folder = r.get("stdout", "").strip()
+    shp = scratch_folder + "\\smoke_landmarks.shp"
+    geojson = {
+        "type": "FeatureCollection",
+        "features": [
+            {"type": "Feature", "properties": {"name": "Museum", "rating": 5},
+             "geometry": {"type": "Point", "coordinates": [-79.39, 43.65]}},
+            {"type": "Feature", "properties": {"name": "Harbour", "rating": 4},
+             "geometry": {"type": "Point", "coordinates": [-79.38, 43.64]}},
+            {"type": "Feature", "properties": {"name": "Island", "rating": 3},
+             "geometry": {"type": "Point", "coordinates": [-79.37, 43.62]}},
+        ],
+    }
+    r = bridge.request("create_features", geojson=geojson, path=shp, timeout=120)
+    d = r.get("description", {})
+    check("shapefile created from GeoJSON",
+          r.get("ok") is True and d.get("shapeType") == "Point"
+          and d.get("rowCount") == 3 and d.get("extension") == "shp",
+          str(r)[:400])
+    field_names = [f.get("name") for f in d.get("fields", [])]
+    check("attribute fields carried over", "name" in field_names, str(field_names))
+
+    print("== export_features: shapefile -> GeoJSON round trip ==")
+    r = bridge.request("export_features", path=shp, where='"rating" >= 4', timeout=120)
+    feats = r.get("geojson", {}).get("features", [])
+    names = sorted(f["properties"].get("name") for f in feats)
+    check("where-filtered round trip",
+          r.get("ok") is True and names == ["Harbour", "Museum"], str(r)[:400])
+
+    bridge.request("exec", code=f"arcpy.management.Delete(r'{shp}')", timeout=60)
+
     print("== cleanup + shutdown ==")
     bridge.request("exec", code=(
         "import arcpy, os\n"

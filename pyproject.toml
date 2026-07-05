@@ -1,6 +1,6 @@
 [project]
 name = "arcclaude"
-version = "0.1.0"
+version = "0.2.0"
 description = "ARCclaude — an open-source MCP server giving AI assistants complete access to the ArcGIS Pro ecosystem via ArcPy"
 readme = "README.md"
 license = "Apache-2.0"

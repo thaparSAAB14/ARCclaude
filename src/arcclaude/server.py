@@ -95,6 +95,50 @@ def describe_gp_tool(tool: str) -> str:
 
 
 @mcp.tool()
+def create_features(
+    geojson: str,
+    output_path: str,
+    geometry_type: str = "",
+    timeout_seconds: float = 300,
+) -> str:
+    """Create vector data (shapefile or geodatabase feature class) from GeoJSON.
+
+    This is the fastest way to MAKE data from scratch: emit a GeoJSON
+    FeatureCollection and pick an output path. `output_path` decides the
+    format: `C:\\data\\roads.shp` creates a shapefile, `C:\\data\\my.gdb\\roads`
+    a file-geodatabase feature class. Attribute fields are created from the
+    feature properties automatically. Coordinates must be WGS84 lon/lat (the
+    GeoJSON spec); use run_gp_tool 'Project_management' afterwards if you
+    need another CRS. Existing outputs are overwritten. The geometry type is
+    inferred from the data; set `geometry_type` (POINT, MULTIPOINT, POLYLINE,
+    POLYGON) only when the collection mixes types and you must pick one.
+    Returns a description of the created dataset.
+    """
+    fields = {"geojson": geojson, "path": output_path}
+    if geometry_type:
+        fields["geometry_type"] = geometry_type.upper()
+    return _call("create_features", timeout=timeout_seconds, **fields)
+
+
+@mcp.tool()
+def export_features(
+    path: str,
+    where: str = "",
+    limit: int = 1000,
+    timeout_seconds: float = 300,
+) -> str:
+    """Read vector data (shapefile, feature class, layer) as GeoJSON.
+
+    The inverse of create_features — lets you inspect actual geometries and
+    attributes. Optional `where` is a SQL where-clause to filter rows
+    (e.g. "POP > 10000"); `limit` caps returned features (response says if
+    truncated). Output coordinates are WGS84.
+    """
+    return _call("export_features", timeout=timeout_seconds,
+                 path=path, where=where, limit=limit)
+
+
+@mcp.tool()
 def describe_data(path: str) -> str:
     """Describe a dataset: type, spatial reference, extent, fields, row count.
 

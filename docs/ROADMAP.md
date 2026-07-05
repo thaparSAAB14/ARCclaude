@@ -12,6 +12,9 @@
 
 ## Phase 2 — Analyst workflows (v0.2–0.3)
 
+- [x] Natural-language vector creation: `create_features` (GeoJSON → shapefile/GDB,
+      fields auto-created, geometry type inferred) + `export_features` (read-back
+      with SQL filter) — v0.2.0
 - [ ] Structured parameter schemas from `arcpy.GetParameterInfo()`
 - [ ] Map & layout automation helpers (arcpy.mp): symbology, layouts, export to PDF/PNG
 - [ ] Progress streaming for long geoprocessing jobs (MCP progress notifications)
@@ -37,6 +40,8 @@
 
 ## Phase 5 — Open geospatial ecosystem (v0.8+)
 
+- [ ] AI-assisted digitizing of scanned/raster maps (Bunting Labs-style vector
+      autocomplete), building on Image Analyst deep-learning tools
 - [ ] Open-data connectors: STAC, OpenStreetMap, CKAN, Earthdata, Copernicus
 - [ ] GDAL/OGR, GeoPandas, WhiteboxTools, PDAL bridges (server-env workers)
 - [ ] PostGIS integration

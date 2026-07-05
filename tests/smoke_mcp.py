@@ -35,10 +35,11 @@ async def main() -> int:
             names = {t.name for t in tools.tools}
             expected = {
                 "arcpy_execute", "run_gp_tool", "search_gp_tools",
-                "describe_gp_tool", "describe_data", "list_workspace",
-                "inspect_project", "session_status", "restart_session",
+                "describe_gp_tool", "describe_data", "create_features",
+                "export_features", "list_workspace", "inspect_project",
+                "session_status", "restart_session",
             }
-            check(f"all 9 tools exposed ({len(names)})", expected <= names,
+            check(f"all 11 tools exposed ({len(names)})", expected <= names,
                   f"missing: {expected - names}")
 
             print("== session_status (cold start, slow) ==")

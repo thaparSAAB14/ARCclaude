@@ -85,6 +85,8 @@ Any other MCP-capable client (Cursor, Windsurf, open-source agents, GPT/Gemini v
 | `search_gp_tools` | Search all ~1800 geoprocessing tools, incl. extension toolboxes |
 | `describe_gp_tool` | Syntax + full documentation for any GP tool |
 | `run_gp_tool` | Execute a GP tool by name with parameters; returns outputs + messages |
+| `create_features` | **Make vector data from GeoJSON** — shapefiles or geodatabase feature classes, fields auto-created, geometry type inferred |
+| `export_features` | Read any vector dataset back as GeoJSON (SQL `where` filter, row limit) |
 | `describe_data` | Dataset profile: type, CRS, extent, fields, row count |
 | `list_workspace` | Inventory a geodatabase or folder |
 | `inspect_project` | Maps, layers, sources, layouts of an `.aprx` |
@@ -119,7 +121,7 @@ Because discovery is dynamic (`arcpy.ListTools`), newly installed extensions and
 
 ## Status
 
-**Alpha (v0.1.0).** The core execution engine works end-to-end. The surface area of the vision — Pro SDK add-in for live session control, ArcGIS Online/Enterprise, open-data connectors — is roadmap. Issues and PRs welcome.
+**Alpha (v0.2.0).** The core execution engine works end-to-end. The surface area of the vision — Pro SDK add-in for live session control, ArcGIS Online/Enterprise, open-data connectors — is roadmap. Issues and PRs welcome.
 
 ## License
 

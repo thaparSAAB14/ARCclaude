@@ -183,8 +183,7 @@ def op_describe_tool(req: dict) -> dict:
 # op: describe_data — structured description of any dataset
 # --------------------------------------------------------------------------
 
-def op_describe_data(req: dict) -> dict:
-    path = req["path"]
+def _describe(path: str) -> dict:
     d = arcpy.Describe(path)
     info: dict = {"path": path}
     for attr in (
@@ -221,7 +220,132 @@ def op_describe_data(req: dict) -> dict:
         info["rowCount"] = int(arcpy.management.GetCount(path)[0])
     except Exception:
         pass
-    return {"id": req["id"], "ok": True, "description": info}
+    return info
+
+
+def op_describe_data(req: dict) -> dict:
+    return {"id": req["id"], "ok": True, "description": _describe(req["path"])}
+
+
+# --------------------------------------------------------------------------
+# op: create_features — GeoJSON in, shapefile / feature class out
+# --------------------------------------------------------------------------
+
+def op_create_features(req: dict) -> dict:
+    import os
+    import tempfile
+
+    geojson = req["geojson"]
+    out_path = req["path"]
+    geometry_type = req.get("geometry_type")  # POINT|MULTIPOINT|POLYLINE|POLYGON
+
+    if not isinstance(geojson, str):
+        geojson = json.dumps(geojson)
+    # Fail early with a clear message rather than a cryptic GP error.
+    parsed = json.loads(geojson)
+    if parsed.get("type") != "FeatureCollection":
+        if parsed.get("type") == "Feature":
+            parsed = {"type": "FeatureCollection", "features": [parsed]}
+            geojson = json.dumps(parsed)
+        else:
+            raise ValueError("geojson must be a GeoJSON FeatureCollection (or single Feature).")
+
+    # JSONToFeatures silently creates an EMPTY dataset for GeoJSON input
+    # unless geometry_type is passed — infer it from the data when possible.
+    if not geometry_type:
+        gj_to_arcpy = {
+            "Point": "POINT", "MultiPoint": "MULTIPOINT",
+            "LineString": "POLYLINE", "MultiLineString": "POLYLINE",
+            "Polygon": "POLYGON", "MultiPolygon": "POLYGON",
+        }
+        kinds = set()
+        for feature in parsed.get("features", []):
+            geom = feature.get("geometry") or {}
+            kinds.add(gj_to_arcpy.get(geom.get("type")))
+        kinds.discard(None)
+        if len(kinds) == 1:
+            geometry_type = kinds.pop()
+        elif len(kinds) > 1:
+            raise ValueError(
+                f"Mixed geometry types {sorted(kinds)} in one collection — pass "
+                "geometry_type to pick which to convert, or split the collection."
+            )
+        else:
+            raise ValueError("No usable geometries found in the GeoJSON.")
+
+    fd, tmp = tempfile.mkstemp(suffix=".geojson", text=True)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(geojson)
+        arcpy.conversion.JSONToFeatures(tmp, out_path, geometry_type)
+    finally:
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+
+    return {
+        "id": req["id"],
+        "ok": True,
+        "created": out_path,
+        "messages": arcpy.GetMessages(),
+        "description": _describe(out_path),
+    }
+
+
+# --------------------------------------------------------------------------
+# op: export_features — feature class / shapefile out as GeoJSON
+# --------------------------------------------------------------------------
+
+def op_export_features(req: dict) -> dict:
+    import os
+    import tempfile
+
+    path = req["path"]
+    where = req.get("where") or None
+    limit = int(req.get("limit", 1000))
+
+    source = path
+    layer = None
+    if where:
+        layer = arcpy.management.MakeFeatureLayer(path, "arcclaude_export_lyr", where)
+        source = layer
+
+    fd, tmp = tempfile.mkstemp(suffix=".json")
+    os.close(fd)
+    os.remove(tmp)  # FeaturesToJSON refuses to overwrite an existing file
+    actual = None
+    try:
+        result = arcpy.conversion.FeaturesToJSON(
+            source, tmp, geoJSON="GEOJSON", outputToWGS84="WGS84"
+        )
+        # The tool renames the output (e.g. forces .geojson) — read the path
+        # it reports, not the one we asked for.
+        actual = result.getOutput(0)
+        with open(actual, encoding="utf-8") as fh:
+            collection = json.load(fh)
+    finally:
+        if layer is not None:
+            arcpy.management.Delete(layer)
+        for leftover in (tmp, actual):
+            if leftover:
+                try:
+                    os.remove(leftover)
+                except OSError:
+                    pass
+
+    features = collection.get("features", [])
+    truncated = len(features) > limit
+    if truncated:
+        collection["features"] = features[:limit]
+
+    return {
+        "id": req["id"],
+        "ok": True,
+        "total_features": len(features),
+        "truncated": truncated,
+        "geojson": collection,
+    }
 
 
 # --------------------------------------------------------------------------
@@ -307,6 +431,8 @@ OPS = {
     "search_tools": op_search_tools,
     "describe_tool": op_describe_tool,
     "describe_data": op_describe_data,
+    "create_features": op_create_features,
+    "export_features": op_export_features,
     "list_workspace": op_list_workspace,
     "inspect_project": op_inspect_project,
     "ping": op_ping,
@@ -327,6 +453,10 @@ def main() -> None:
             "hint": "Is ArcGIS Pro licensed on this machine? Try opening Pro once.",
         })
         sys.exit(3)
+
+    # AI workflows iterate; failing on "output already exists" only wastes a
+    # round-trip. Matches the Pro Python window default.
+    arcpy.env.overwriteOutput = True
 
     info = arcpy.GetInstallInfo()
     _send({
