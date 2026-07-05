@@ -33,10 +33,12 @@ Two design decisions make this robust:
 ## Quickstart
 
 ```powershell
-git clone https://github.com/arcclaude/arcclaude
-cd arcclaude
+git clone https://github.com/thaparSAAB14/ARCclaude.git
+cd ARCclaude
 uv sync
 ```
+
+New to this? The **[complete setup guide](docs/SETUP.md)** walks through everything from a blank machine, including client configs and troubleshooting.
 
 ### Claude Code
 
@@ -97,6 +99,7 @@ Because discovery is dynamic (`arcpy.ListTools`), newly installed extensions and
 
 ## Project documents
 
+- [Setup guide](docs/SETUP.md) — complete walkthrough: install, client configs, troubleshooting
 - [Vision](docs/VISION.md) — the full scope this project is building toward
 - [Architecture](docs/ARCHITECTURE.md) — design decisions and worker protocol
 - [Roadmap](docs/ROADMAP.md) — phased plan from this MVP to the full vision

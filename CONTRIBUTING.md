@@ -16,8 +16,8 @@ Thanks for helping build the open-source AI copilot for ArcGIS Pro!
 ## Dev setup
 
 ```powershell
-git clone https://github.com/arcclaude/arcclaude
-cd arcclaude
+git clone https://github.com/thaparSAAB14/ARCclaude.git
+cd ARCclaude
 uv sync
 ```
 

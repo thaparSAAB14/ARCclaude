@@ -20,7 +20,7 @@ dependencies = ["mcp>=1.2.0"]
 arcclaude = "arcclaude.server:main"
 
 [project.urls]
-Homepage = "https://github.com/arcclaude/arcclaude"
+Homepage = "https://github.com/thaparSAAB14/ARCclaude"
 
 [build-system]
 requires = ["hatchling"]
