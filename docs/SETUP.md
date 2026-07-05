@@ -110,14 +110,17 @@ Any agent framework that supports MCP (OpenAI Agents SDK, LangChain MCP adapters
 
 ## 5. First run — what to expect
 
+**Remember the model: you chat in your AI app; ArcGIS Pro is the engine and the viewer.** There's no ARCclaude button inside Pro — results are real files you add to Pro like any other data.
+
 1. Ask your AI: **"Check the ArcGIS session status."** The first call takes **20–60 seconds** (arcpy license checkout). You should get back your license level (e.g. `ArcInfo`) and scratch workspace.
 2. Then try something real:
+   - *"Make a shapefile with 3 landmarks of my city and 500 m buffers around them, in C:\GIS\demo."*
    - *"Search for geoprocessing tools related to watersheds."*
-   - *"Create 10 random points in a scratch feature class and buffer them by 1 km."*
    - *"Describe the data in C:\path\to\my.gdb."*
    - *"Open my project at C:\...\project.aprx and list every layer with a broken data source."*
+3. **See it in ArcGIS Pro:** open any map project → **Map tab → Add Data** → browse to the output folder → add the layers. Attribute tables, projections, everything is standard.
 
-The session is persistent — variables the AI creates in one step stay available for the next, so it can build long multi-step workflows.
+The session is persistent — variables the AI creates in one step stay available for the next, so it can build long multi-step workflows. Keep Pro and the AI off the *same geodatabase* at the same moment to avoid schema locks (shapefiles rarely conflict); ask the AI to `restart_session` to release its locks anytime.
 
 ---
 

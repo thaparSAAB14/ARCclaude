@@ -20,6 +20,16 @@ ArcPy worker — persistent session on ArcGIS Pro's own Python
 ArcGIS Pro  (all licensed tools & extensions)
 ```
 
+### The mental model (read this first)
+
+**There is no chat window inside ArcGIS Pro, and you never "open" ARCclaude.** The relationship is flipped:
+
+1. **You talk to your AI app** (Claude Desktop, Claude Code, Cursor, …) in plain English: *"Create a shapefile of the 5 largest lakes in Ontario with name and area fields."*
+2. **The AI drives ArcGIS Pro's engine** through ARCclaude, in the background — Pro doesn't even need to be running.
+3. **You open the results in Pro** like any other data: Map → Add Data → your new shapefile/geodatabase is just *there*, fields and all.
+
+Pro can be open at the same time; just avoid pointing both Pro and the AI at the same geodatabase simultaneously (file locks). An in-Pro chat panel is on the [roadmap](docs/ROADMAP.md) (Phase 3).
+
 Two design decisions make this robust:
 
 1. **Esri's Python environment is never modified.** The worker script uses only the standard library + arcpy, so nothing is ever installed into `arcgispro-py3`. No env cloning, no admin rights, upgrade-safe.
