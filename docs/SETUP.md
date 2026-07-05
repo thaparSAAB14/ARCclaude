@@ -27,13 +27,33 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 
 ## 2. Install ARCclaude
 
+### Option A — automatic installer (recommended)
+
+One line in PowerShell does everything below *and* section 4's client configuration:
+
+```powershell
+irm https://raw.githubusercontent.com/thaparSAAB14/ARCclaude/main/install.ps1 | iex
+```
+
+Or, from a downloaded/cloned copy, **double-click `install.cmd`**. The installer:
+1. Verifies ArcGIS Pro is present (fails with guidance if not)
+2. Installs `uv` if missing (official astral.sh installer)
+3. Downloads the latest ARCclaude to `%LOCALAPPDATA%\ARCclaude` (or uses the local copy it's run from)
+4. Creates the isolated Python environment (`uv sync`)
+5. Verifies the server can start and find ArcGIS Pro
+6. Auto-registers with Claude Code (globally) and Claude Desktop (merging safely into your existing config, with a `.bak` backup)
+
+Flags: `-NoClientConfig` (skip step 6), `-RunTests` (run the full geoprocessing smoke test), `-InstallDir C:\somewhere` (custom location). Re-running the installer updates in place — it will stop any running ARCclaude server first.
+
+### Option B — manual
+
 ```powershell
 git clone https://github.com/thaparSAAB14/ARCclaude.git
 cd ARCclaude
 uv sync
 ```
 
-That's the whole install. `uv sync` creates an isolated environment with the MCP SDK — **nothing is ever installed into Esri's Python environment**, no admin rights needed.
+Either way, **nothing is ever installed into Esri's Python environment**, and no admin rights are needed.
 
 ---
 

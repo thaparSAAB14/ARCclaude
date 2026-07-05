@@ -32,6 +32,18 @@ Two design decisions make this robust:
 
 ## Quickstart
 
+### One-command install (recommended)
+
+Paste into PowerShell — like a game installer, it checks ArcGIS Pro, installs `uv` if needed, downloads ARCclaude, and auto-configures Claude Code and Claude Desktop:
+
+```powershell
+irm https://raw.githubusercontent.com/thaparSAAB14/ARCclaude/main/install.ps1 | iex
+```
+
+Or download the repo and **double-click `install.cmd`**. Re-running it updates an existing install.
+
+### Manual install
+
 ```powershell
 git clone https://github.com/thaparSAAB14/ARCclaude.git
 cd ARCclaude

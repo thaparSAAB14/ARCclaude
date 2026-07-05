@@ -18,7 +18,8 @@
 - [ ] Attachment/resource support: return exported maps and charts as MCP resources
 - [ ] Cursor-based data reading with pagination (arcpy.da → JSON)
 - [ ] SD/geodatabase schema reporting; broken-source detection and repair
-- [ ] Windows installer script + `uvx` one-command run
+- [x] Windows installer: `install.cmd` / `install.ps1` one-liner with client auto-config
+- [ ] Signed MSI release artifact (needs code-signing certificate + release pipeline)
 
 ## Phase 3 — Live application control (v0.4–0.5)
 
