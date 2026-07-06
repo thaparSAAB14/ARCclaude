@@ -181,8 +181,16 @@ def _run_anthropic(cfg, bridge):
             print("Paste into Pro's Python window:\n  " + paste_line()); continue
         messages.append({"role": "user", "content": user})
         while True:
-            resp = client.messages.create(model=model, system=SYSTEM, max_tokens=4096,
-                                          messages=messages, tools=tools)
+            try:
+                resp = client.messages.create(model=model, system=SYSTEM, max_tokens=4096,
+                                              messages=messages, tools=tools)
+            except anthropic.AuthenticationError:
+                print("\n✗ Your API key was rejected (401). Get a key at "
+                      "https://console.anthropic.com → API keys, then run: arcclaude login")
+                messages.pop(); break
+            except anthropic.APIError as exc:
+                print(f"\n✗ API error: {exc}. Try again or run: arcclaude login")
+                messages.pop(); break
             messages.append({"role": "assistant", "content": resp.content})
             for block in resp.content:
                 if block.type == "text" and block.text.strip():
@@ -219,7 +227,15 @@ def _run_openai(cfg, bridge):
             print("Paste into Pro's Python window:\n  " + paste_line()); continue
         messages.append({"role": "user", "content": user})
         while True:
-            resp = client.chat.completions.create(model=model, messages=messages, tools=tools)
+            try:
+                resp = client.chat.completions.create(model=model, messages=messages, tools=tools)
+            except openai.AuthenticationError:
+                print("\n✗ Your API key was rejected (401). Check the key/base URL, "
+                      "then run: arcclaude login")
+                messages.pop(); break
+            except openai.OpenAIError as exc:
+                print(f"\n✗ API error: {exc}. Try again or run: arcclaude login")
+                messages.pop(); break
             msg = resp.choices[0].message
             messages.append({"role": "assistant", "content": msg.content,
                              "tool_calls": msg.tool_calls})
