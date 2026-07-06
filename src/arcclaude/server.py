@@ -173,7 +173,8 @@ def pro_live_execute(code: str, timeout_seconds: float = 60) -> str:
     Requires the user to have cowork mode running — if no listener responds,
     the error includes the exact one-liner they must paste into Pro's Python
     window. Variables persist between calls (separate namespace from
-    arcpy_execute).
+    arcpy_execute). Caution: prefer data/layer/symbology operations; avoid
+    rapid or repeated view/camera manipulation, which can destabilize Pro.
     """
     result = live_execute(code, timeout=timeout_seconds)
     return json.dumps(result, indent=2, ensure_ascii=False, default=repr)

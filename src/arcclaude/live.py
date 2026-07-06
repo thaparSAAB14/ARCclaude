@@ -17,7 +17,8 @@ import time
 import uuid
 from pathlib import Path
 
-LIVE_DIR = Path.home() / ".arcclaude" / "live"
+LIVE_DIR = Path(os.environ.get("ARCCLAUDE_LIVE_DIR")
+                or Path.home() / ".arcclaude" / "live")
 LISTENER_PATH = Path(__file__).parent / "worker" / "live_listener.py"
 
 
@@ -73,7 +74,7 @@ def live_execute(code: str, timeout: float = 60.0) -> dict:
         "cowork mode:\n  " + paste_line()
     )
     if listener_alive():
-        hint = ("A listener heartbeat exists but the command timed out — the "
+        hint = ("A listener heartbeat exists but the command timed out - the "
                 "live session may be busy with a long operation.")
     return {"ok": False, "error": f"Live Link timeout after {timeout:.0f}s.", "hint": hint}
 

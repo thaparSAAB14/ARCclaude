@@ -21,7 +21,8 @@ import time as _time
 import traceback as _traceback
 from pathlib import Path as _Path
 
-_ARCCLAUDE_LIVE_DIR = _Path.home() / ".arcclaude" / "live"
+_ARCCLAUDE_LIVE_DIR = _Path(_os.environ.get("ARCCLAUDE_LIVE_DIR")
+                            or _Path.home() / ".arcclaude" / "live")
 _ARCCLAUDE_NS = {"__name__": "__arcclaude_live__"}
 
 
@@ -46,8 +47,13 @@ def _arcclaude_run(code):
     return resp
 
 
-def arcclaude_live(minutes=120, poll=0.4):
-    """Cowork mode: execute queued AI commands inside this Pro session."""
+def arcclaude_live(minutes=45, poll=0.5, idle_minutes=10):
+    """Cowork mode: execute queued AI commands inside this Pro session.
+
+    IMPORTANT: while active, this loop keeps the Python window busy — don't
+    type further commands there, and don't close Pro to stop it. Stop it from
+    any terminal with `arcclaude live stop` (or wait for the idle timeout).
+    """
     try:
         import arcpy  # noqa: F401 — preload into the shared namespace
         _ARCCLAUDE_NS["arcpy"] = arcpy
@@ -58,10 +64,19 @@ def arcclaude_live(minutes=120, poll=0.4):
     stop_file = _ARCCLAUDE_LIVE_DIR / "stop"
     if stop_file.exists():
         stop_file.unlink()
+    # purge leftovers from previous sessions so nothing stale ever replays
+    for old in list(_ARCCLAUDE_LIVE_DIR.glob("cmd_*")) + list(_ARCCLAUDE_LIVE_DIR.glob("result_*")):
+        try:
+            old.unlink()
+        except OSError:
+            pass
     heartbeat = _ARCCLAUDE_LIVE_DIR / "heartbeat"
     deadline = _time.time() + minutes * 60
-    print(f"ARCclaude Live Link ACTIVE for up to {minutes} min - the AI can "
-          f"now drive this ArcGIS Pro session. Queue: {_ARCCLAUDE_LIVE_DIR}")
+    last_activity = _time.time()
+    print(f"ARCclaude Live Link ACTIVE (max {minutes} min, auto-exits after "
+          f"{idle_minutes} idle min).")
+    print("  While active, this Python window is busy - don't type here.")
+    print("  To stop from a terminal:  uv run arcclaude live stop")
 
     done = 0
     try:
@@ -69,6 +84,10 @@ def arcclaude_live(minutes=120, poll=0.4):
             if stop_file.exists():
                 stop_file.unlink()
                 print("ARCclaude Live Link: stop requested - exiting.")
+                break
+            if _time.time() - last_activity > idle_minutes * 60:
+                print(f"ARCclaude Live Link: no commands for {idle_minutes} min - "
+                      "exiting so the Python window is free again. Re-paste to resume.")
                 break
             try:
                 heartbeat.write_text(str(_time.time()))
@@ -91,8 +110,10 @@ def arcclaude_live(minutes=120, poll=0.4):
                                encoding="utf-8")
                 _os.replace(tmp, out)
                 done += 1
+                last_activity = _time.time()
                 status = "ok" if resp.get("ok") else "ERROR"
                 print(f"  [{done}] executed command {req.get('id')} -> {status}")
+                _time.sleep(0.1)  # let Pro breathe between commands
             _time.sleep(poll)
     except KeyboardInterrupt:
         print("ARCclaude Live Link: interrupted - exiting.")

@@ -5,12 +5,18 @@ mechanics are identical; only arcpy is absent). Run:
     uv run python tests/smoke_live.py
 """
 
+import os
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
-from arcclaude.live import LIVE_DIR, LISTENER_PATH, live_execute, stop_listener, listener_alive
+# isolate from any real Pro listener BEFORE importing the module
+os.environ["ARCCLAUDE_LIVE_DIR"] = str(
+    Path(tempfile.mkdtemp(prefix="arcclaude_live_test_")))
+
+from arcclaude.live import LIVE_DIR, LISTENER_PATH, live_execute, stop_listener, listener_alive  # noqa: E402
 
 PASS = FAIL = 0
 

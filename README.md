@@ -124,8 +124,13 @@ An open project is locked to outside processes, so ARCclaude ships a Live Link:
 run `uv run arcclaude live`, paste the printed one-liner into Pro's **Python
 window** (View ribbon → Python), and the AI can now drive the session you're
 looking at — add layers to the current map, restyle, zoom, save — via the
-`pro_live_execute` tool. Stop anytime with `arcclaude live stop` or by closing
-the Python window. See [PRODUCT.md](docs/PRODUCT.md) for the full architecture.
+`pro_live_execute` tool.
+
+Cowork rules (experimental feature): while active, Pro's Python window is
+**busy** — don't type more commands into it, and don't close Pro to end it.
+Stop from any terminal with `uv run arcclaude live stop`; it also auto-exits
+after 10 minutes with no commands. See [PRODUCT.md](docs/PRODUCT.md) for the
+architecture — the Phase-3 add-in replaces this with proper in-app threading.
 
 ## Security model
 
