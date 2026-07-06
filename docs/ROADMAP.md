@@ -26,7 +26,14 @@
 
 ## Phase 3 — Live application control (v0.4–0.5)
 
-- [ ] ArcGIS Pro SDK (.NET) add-in hosting a local bridge
+- [x] **Live Link** (v0.3): file-queue listener pasted into Pro's Python window;
+      `pro_live_execute` drives the OPEN session (CURRENT project, live map changes)
+- [x] **Terminal app** (v0.3): `arcclaude chat` agentic CLI + `arcclaude login`
+      (Anthropic / OpenAI-compatible / local Ollama keys)
+- [ ] ArcGIS Pro SDK (.NET) add-in: dockable chat pane hosting the same agent,
+      reusing the Live Link command protocol
+- [ ] `georeference_map` tool: scanned map → CV grid detection → warp, < 3 min
+      (workflow proven on GSC OF 3511: 3.4 m / 2.5 m RMS)
 - [ ] Drive the open Pro session: active map, views, selections, bookmarks, editing
 - [ ] Bidirectional context: AI sees what the user sees (current extent, selected features)
 - [ ] CIM-level symbology and layout manipulation

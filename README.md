@@ -92,6 +92,7 @@ Any other MCP-capable client (Cursor, Windsurf, open-source agents, GPT/Gemini v
 | Tool | What it does |
 |---|---|
 | `arcpy_execute` | Run any Python/ArcPy code in the persistent session (REPL semantics) |
+| `pro_live_execute` | **Cowork mode**: run code inside the user's OPEN ArcGIS Pro app — live map changes, `CURRENT` project |
 | `search_gp_tools` | Search all ~1800 geoprocessing tools, incl. extension toolboxes |
 | `describe_gp_tool` | Syntax + full documentation for any GP tool |
 | `run_gp_tool` | Execute a GP tool by name with parameters; returns outputs + messages |
@@ -104,6 +105,27 @@ Any other MCP-capable client (Cursor, Windsurf, open-source agents, GPT/Gemini v
 | `restart_session` | Kill and restart the ArcPy session (clears state, releases locks) |
 
 Because discovery is dynamic (`arcpy.ListTools`), newly installed extensions and custom toolboxes are exposed automatically — no code changes needed.
+
+## No Claude Desktop? Use the built-in terminal app
+
+ARCclaude is also a standalone agentic CLI (bring your own API key — Anthropic,
+OpenAI, Gemini-compat, Groq, or a free local model via Ollama):
+
+```powershell
+uv run arcclaude login    # one-time: pick provider, paste key
+uv run arcclaude chat     # Codex-style AI GIS terminal
+```
+
+Works in any Windows terminal, including ArcGIS Pro's own *Python Command Prompt*.
+
+## Cowork mode — live changes in the OPEN ArcGIS Pro
+
+An open project is locked to outside processes, so ARCclaude ships a Live Link:
+run `uv run arcclaude live`, paste the printed one-liner into Pro's **Python
+window** (View ribbon → Python), and the AI can now drive the session you're
+looking at — add layers to the current map, restyle, zoom, save — via the
+`pro_live_execute` tool. Stop anytime with `arcclaude live stop` or by closing
+the Python window. See [PRODUCT.md](docs/PRODUCT.md) for the full architecture.
 
 ## Security model
 
@@ -131,7 +153,7 @@ Because discovery is dynamic (`arcpy.ListTools`), newly installed extensions and
 
 ## Status
 
-**Alpha (v0.2.0).** The core execution engine works end-to-end. The surface area of the vision — Pro SDK add-in for live session control, ArcGIS Online/Enterprise, open-data connectors — is roadmap. Issues and PRs welcome.
+**Alpha (v0.3.0).** The core execution engine works end-to-end. The surface area of the vision — Pro SDK add-in for live session control, ArcGIS Online/Enterprise, open-data connectors — is roadmap. Issues and PRs welcome.
 
 ## License
 

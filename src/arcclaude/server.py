@@ -11,6 +11,7 @@ import json
 from mcp.server.fastmcp import FastMCP
 
 from .bridge import ArcPyBridge, WorkerError
+from .live import live_execute, paste_line
 
 mcp = FastMCP(
     "arcclaude",
@@ -160,6 +161,22 @@ def inspect_project(path: str) -> str:
     """Inspect an ArcGIS Pro project (.aprx): maps, layers, data sources,
     layouts and default geodatabase."""
     return _call("inspect_project", path=path, timeout=120)
+
+
+@mcp.tool()
+def pro_live_execute(code: str, timeout_seconds: float = 60) -> str:
+    """Execute Python INSIDE the currently open ArcGIS Pro application.
+
+    Unlike arcpy_execute (headless background session), this runs in the live
+    Pro session the user is looking at: `arcpy.mp.ArcGISProject("CURRENT")`
+    works, added layers appear immediately, the open project can be saved.
+    Requires the user to have cowork mode running — if no listener responds,
+    the error includes the exact one-liner they must paste into Pro's Python
+    window. Variables persist between calls (separate namespace from
+    arcpy_execute).
+    """
+    result = live_execute(code, timeout=timeout_seconds)
+    return json.dumps(result, indent=2, ensure_ascii=False, default=repr)
 
 
 @mcp.tool()

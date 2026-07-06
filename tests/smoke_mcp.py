@@ -37,9 +37,9 @@ async def main() -> int:
                 "arcpy_execute", "run_gp_tool", "search_gp_tools",
                 "describe_gp_tool", "describe_data", "create_features",
                 "export_features", "list_workspace", "inspect_project",
-                "session_status", "restart_session",
+                "session_status", "restart_session", "pro_live_execute",
             }
-            check(f"all 11 tools exposed ({len(names)})", expected <= names,
+            check(f"all 12 tools exposed ({len(names)})", expected <= names,
                   f"missing: {expected - names}")
 
             print("== session_status (cold start, slow) ==")
