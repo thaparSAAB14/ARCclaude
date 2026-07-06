@@ -164,6 +164,8 @@ architecture — the Phase-3 add-in replaces this with proper in-app threading.
 ## Project documents
 
 - [Setup guide](docs/SETUP.md) — complete walkthrough: install, client configs, troubleshooting
+- [Security & privacy](SECURITY.md) — data flow, offline mode, network surface (read this, IT folks)
+- [Comparison](docs/COMPARISON.md) — vs. Esri's Pro Assistant, community MCP servers, and Kue
 - [Vision](docs/VISION.md) — the full scope this project is building toward
 - [Architecture](docs/ARCHITECTURE.md) — design decisions and worker protocol
 - [Roadmap](docs/ROADMAP.md) — phased plan from this MVP to the full vision
