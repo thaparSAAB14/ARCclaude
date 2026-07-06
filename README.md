@@ -106,6 +106,19 @@ Any other MCP-capable client (Cursor, Windsurf, open-source agents, GPT/Gemini v
 
 Because discovery is dynamic (`arcpy.ListTools`), newly installed extensions and custom toolboxes are exposed automatically — no code changes needed.
 
+## The App — easiest way in (no terminal skills needed)
+
+```powershell
+uv run arcclaude app        # or double-click "ARCclaude App.cmd"
+```
+
+A chat window opens in your browser. First run asks for an AI key (Settings);
+after that you just type — *"map the flood zones near my site"* — and the
+engine, worker session and Live Link detection run automatically in the
+background. Status dots show Engine / ArcGIS Pro / Live Link at a glance,
+and **Connect Pro** gives you the one copy-paste line for cowork mode.
+The installer also puts an **ARCclaude App** launcher on your Desktop.
+
 ## No Claude Desktop? Use the built-in terminal app
 
 ARCclaude is also a standalone agentic CLI (bring your own API key — Anthropic,
@@ -158,7 +171,7 @@ architecture — the Phase-3 add-in replaces this with proper in-app threading.
 
 ## Status
 
-**Alpha (v0.3.0).** The core execution engine works end-to-end. The surface area of the vision — Pro SDK add-in for live session control, ArcGIS Online/Enterprise, open-data connectors — is roadmap. Issues and PRs welcome.
+**Alpha (v0.4.0).** The core execution engine works end-to-end. The surface area of the vision — Pro SDK add-in for live session control, ArcGIS Online/Enterprise, open-data connectors — is roadmap. Issues and PRs welcome.
 
 ## License
 

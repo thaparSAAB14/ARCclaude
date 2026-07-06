@@ -30,6 +30,8 @@
       `pro_live_execute` drives the OPEN session (CURRENT project, live map changes)
 - [x] **Terminal app** (v0.3): `arcclaude chat` agentic CLI + `arcclaude login`
       (Anthropic / OpenAI-compatible / local Ollama keys)
+- [x] **ARCclaude App** (v0.4): beginner-friendly local web UI — chat, status
+      dots, key setup, Connect-Pro button, Desktop launcher; shared agent core
 - [ ] ArcGIS Pro SDK (.NET) add-in: dockable chat pane hosting the same agent,
       reusing the Live Link command protocol
 - [ ] `georeference_map` tool: scanned map → CV grid detection → warp, < 3 min

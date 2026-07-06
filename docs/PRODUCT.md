@@ -23,7 +23,16 @@ persistent ArcPy worker), so capabilities land everywhere at once.
 For people who already have an AI client (Claude Desktop/Code, Cursor…).
 Model-agnostic, uses the client's own AI subscription. 11 tools today.
 
-## Pillar 2 — `arcclaude chat`: the terminal app (v0.3)
+## Pillar 2 — the App & the terminal (v0.3–0.4)
+
+**`arcclaude app` (v0.4)** — the beginner surface: a local web app (auto-opens
+in the browser) with a chat box, live status dots (Engine / Pro / Live Link),
+one-time key setup in Settings, and a Connect-Pro button. Everything else —
+worker startup, provider calls, queueing — is automatic and invisible.
+Desktop launcher installed by `install.ps1`. Same agent core as the CLI
+(`src/arcclaude/agent.py`).
+
+### `arcclaude chat`: the terminal flavor (v0.3)
 
 A Codex-CLI-style agentic REPL — no Claude Desktop/Code required:
 

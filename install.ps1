@@ -250,6 +250,15 @@ if ($NoClientConfig) {
     }
 }
 
+# ---------------------------------------------------------------- desktop launcher
+$desktop = [Environment]::GetFolderPath('Desktop')
+if ($desktop -and (Test-Path $desktop)) {
+    $launcher = Join-Path $desktop 'ARCclaude App.cmd'
+    $content = "@echo off`r`ntitle ARCclaude App`r`nuv --directory `"$InstallDir`" run arcclaude app`r`npause`r`n"
+    [System.IO.File]::WriteAllText($launcher, $content)
+    Write-Ok "Desktop launcher created: ARCclaude App"
+}
+
 # ---------------------------------------------------------------- done
 Write-Host ''
 Write-Host '  =============================================' -ForegroundColor DarkGreen
