@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <!-- Definitions for clean gradients (no glows/fades) -->
+  <defs>
+    <!-- Sweeping Bridge Linear Gradient -->
+    <linearGradient id="bridge-grad" x1="250" y1="210" x2="550" y2="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="50%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+
+    <!-- Text Gradients -->
+    <linearGradient id="setu-text" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#EC4899"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="arc-text" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Transparent Background (No rect) -->
+
+  <!-- ==================== SWEEPING BRIDGE (SETU) ==================== -->
+  <g stroke="url(#bridge-grad)" fill="none" stroke-linecap="round" opacity="0.9">
+    <!-- Main sweeping arch -->
+    <path d="M 250,210 C 330,110 470,110 550,180" stroke-width="6" />
+    <!-- Secondary parallel sweeping arches -->
+    <path d="M 270,225 C 340,130 460,130 535,195" stroke-width="3.5" />
+    <path d="M 230,225 C 320,120 480,120 560,165" stroke-width="2" stroke-dasharray="6, 6" />
+  </g>
+
+  <!-- ==================== LEFT NODE: AI SPARK ==================== -->
+  <g>
+    <!-- Sharp 4-point star path -->
+    <path d="M 250,120 Q 250,250 120,250 Q 250,250 250,380 Q 250,250 380,250 Q 250,250 250,120 Z"
+          fill="none" stroke="#8B5CF6" stroke-width="3" />
+
+    <!-- Radiant Accent Sparks -->
+    <line x1="250" y1="120" x2="250" y2="85" stroke="#EC4899" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="250" y1="380" x2="250" y2="415" stroke="#EC4899" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="120" y1="250" x2="85" y2="250" stroke="#EC4899" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="380" y1="250" x2="415" y2="250" stroke="#EC4899" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="170" y1="170" x2="145" y2="145" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" />
+    <line x1="330" y1="330" x2="355" y2="355" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" />
+    <line x1="330" y1="170" x2="355" y2="145" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" />
+    <line x1="170" y1="330" x2="145" y2="355" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" />
+
+    <!-- Neural Network Node Points (representing AI logic) -->
+    <g fill="#111827" stroke="#8B5CF6" stroke-width="2.5">
+      <line x1="220" y1="210" x2="280" y2="200" stroke="#8B5CF6" stroke-width="2" />
+      <line x1="280" y1="200" x2="295" y2="270" stroke="#8B5CF6" stroke-width="2" />
+      <line x1="295" y1="270" x2="215" y2="285" stroke="#8B5CF6" stroke-width="2" />
+      <line x1="215" y1="285" x2="220" y2="210" stroke="#8B5CF6" stroke-width="2" />
+      <line x1="220" y1="210" x2="295" y2="270" stroke="#8B5CF6" stroke-width="2" />
+      <line x1="280" y1="200" x2="215" y2="285" stroke="#8B5CF6" stroke-width="2" />
+      
+      <!-- Nodes -->
+      <circle cx="220" cy="210" r="7" fill="#E879F9" />
+      <circle cx="280" cy="200" r="7" fill="#8B5CF6" />
+      <circle cx="295" cy="270" r="9" fill="#E879F9" />
+      <circle cx="215" cy="285" r="7" fill="#8B5CF6" />
+    </g>
+  </g>
+
+  <!-- ==================== RIGHT NODE: GIS GLOBE ==================== -->
+  <g>
+    <!-- Globe Outer Ring -->
+    <circle cx="550" cy="250" r="120" fill="none" stroke="#3B82F6" stroke-width="4" />
+    
+    <!-- Outer locator ring segment -->
+    <path d="M 698,220 A 150,150 0 0,1 660,370" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" />
+    <line x1="680" y1="180" x2="710" y2="180" stroke="#3B82F6" stroke-width="2" />
+    <line x1="695" y1="165" x2="695" y2="195" stroke="#3B82F6" stroke-width="2" />
+
+    <!-- Grid Lines: Longitudes (vertical ellipses) -->
+    <ellipse cx="550" cy="250" rx="85" ry="120" fill="none" stroke="#3B82F6" stroke-width="2.2" opacity="0.85" />
+    <ellipse cx="550" cy="250" rx="45" ry="120" fill="none" stroke="#3B82F6" stroke-width="2.2" opacity="0.85" />
+    <line x1="550" y1="130" x2="550" y2="370" stroke="#3B82F6" stroke-width="2.2" opacity="0.85" />
+
+    <!-- Grid Lines: Latitudes (horizontal ellipses/lines) -->
+    <path d="M 440,210 Q 550,230 660,210" fill="none" stroke="#10B981" stroke-width="2" opacity="0.85" />
+    <path d="M 456,170 Q 550,195 644,170" fill="none" stroke="#10B981" stroke-width="2" opacity="0.75" />
+    <path d="M 440,290 Q 550,270 660,290" fill="none" stroke="#10B981" stroke-width="2" opacity="0.85" />
+    <path d="M 456,330 Q 550,305 644,330" fill="none" stroke="#10B981" stroke-width="2" opacity="0.75" />
+    <line x1="430" y1="250" x2="670" y2="250" stroke="#10B981" stroke-width="2.5" opacity="0.9" />
+  </g>
+
+  <!-- ==================== LOGO TYPOGRAPHY ==================== -->
+  <!-- Using standard web-safe sans-serif fonts suitable for dark/light pages -->
+  <text x="400" y="500" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <!-- SETU -->
+    <tspan fill="url(#setu-text)" font-weight="900" font-size="52" letter-spacing="4px">SETU</tspan>
+    <!-- Separator -->
+    <tspan fill="#9CA3AF" font-weight="200" font-size="52"> / </tspan>
+    <!-- ARCCLAUDE -->
+    <tspan fill="url(#arc-text)" font-weight="800" font-size="52" letter-spacing="2px">ARCCLAUDE</tspan>
+  </text>
+  
+  <text x="400" y="545" text-anchor="middle" fill="#6B7280" font-weight="500" font-size="15" letter-spacing="8px" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    AI COWORK LINK FOR ARCGIS PRO
+  </text>
+</svg>

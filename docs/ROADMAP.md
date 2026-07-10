@@ -67,6 +67,11 @@
 
 ## Cross-cutting
 
+- [ ] Boss/worker parallel engine (rules.md §4): a pool of concurrent ArcPy worker
+      processes for parallel retrieval/analysis. Non-trivial by design — arcpy is
+      single-threaded per process and each worker checks out its own license
+      session, so this needs pooling, scheduling and result-merge design first
+
 - [ ] CI (lint + unit tests that mock the worker; GP tests need a licensed runner)
 - [ ] Contributor docs, issue templates, discussions
 - [ ] Security hardening: allowlist mode, read-only mode, audit log of executed code

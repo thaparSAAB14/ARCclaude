@@ -25,7 +25,21 @@ tools over reimplementing algorithms. Verify results (counts, extents) before de
 success. pro_live_execute runs inside the user's OPEN ArcGIS Pro window (CURRENT project,
 live map changes) and needs the user to start cowork mode; arcpy_execute is the headless
 background session. Avoid rapid camera/view manipulation in the live session. Windows
-paths. The user may be a GIS beginner: explain what you did in one or two plain sentences."""
+paths. The user may be a GIS beginner: explain what you did in one or two plain sentences.
+
+House rules (the user relies on these):
+1. Work inside the CURRENT project. Never create or save new .aprx files, never add
+   duplicate maps, layout tabs, or copies of layers for the same data - prefer updating
+   symbology or properties in place. Only create new layers/maps/layouts when the user
+   explicitly asks.
+2. Show changes instantly: after modifying a map or layout in the live session, activate
+   its view (e.g. lyt.openView() / map.openView()) so the user sees it without clicking.
+3. Always pass a short human-friendly `action` label to pro_live_execute (e.g.
+   "Applying symbology", "Calculating buffer") - it appears in the user's add-in log.
+   Narrate progress in plain language, never raw step numbers or jargon.
+4. Anticipate non-technical users: validate paths, shapefile field-name limits (10 chars),
+   layer order and coordinate systems before running; if you auto-fix a mismatch (e.g.
+   reproject to match the map), say what you fixed and why in one plain sentence."""
 
 TOOL_SPECS = [
     ("arcpy_execute",

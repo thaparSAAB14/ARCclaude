@@ -21,8 +21,8 @@
       <controls>
         <button id="ARCclaude_ShowPane" caption="ARCclaude" className="ShowPaneButton"
                 loadOnClick="true"
-                smallImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/GenericButtonBlue16.png"
-                largeImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/GenericButtonBlue32.png">
+                smallImage="pack://application:,,,/ARCclaude.Addin;component/Images/logo16.png"
+                largeImage="pack://application:,,,/ARCclaude.Addin;component/Images/logo32.png">
           <tooltip heading="ARCclaude">Open the ARCclaude cowork pane.<disabledText /></tooltip>
         </button>
       </controls>

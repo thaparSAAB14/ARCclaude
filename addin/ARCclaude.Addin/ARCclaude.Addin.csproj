@@ -27,6 +27,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Images\logo16.png" />
+    <Resource Include="Images\logo32.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="Config.daml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

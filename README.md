@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo.svg" width="460" alt="SETU / ARCclaude — AI cowork link for ArcGIS Pro"></p>
+
 # ARCclaude
 
 **An open-source MCP server that gives AI assistants complete access to the ArcGIS Pro ecosystem.**

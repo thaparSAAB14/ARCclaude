@@ -22,7 +22,12 @@ mcp = FastMCP(
         "(~20-60s) while arcpy imports and checks out a license; subsequent "
         "calls are fast. Use search_gp_tools/describe_gp_tool to discover any "
         "of the ~1800 geoprocessing tools, run_gp_tool to execute one, and "
-        "arcpy_execute for arbitrary ArcPy/Python code."
+        "arcpy_execute for arbitrary ArcPy/Python code. House rules: work in "
+        "the CURRENT project - never create new .aprx files, duplicate maps/"
+        "layouts, or add layers unless explicitly asked (prefer symbology/"
+        "property updates in place); after editing a map or layout live, call "
+        "its .openView() so the user sees it instantly; pass a human-friendly "
+        "`action` label to pro_live_execute; explain auto-fixes in plain words."
     ),
 )
 
@@ -175,6 +180,10 @@ def pro_live_execute(code: str, timeout_seconds: float = 60, action: str = "") -
     window. Variables persist between calls (separate namespace from
     arcpy_execute). Caution: prefer data/layer/symbology operations; avoid
     rapid or repeated view/camera manipulation, which can destabilize Pro.
+    Pass `action` as a short human label ("Applying symbology") - it shows in
+    the user's add-in activity log. House rules: don't create new .aprx files,
+    maps, layouts or layers unless the user asked; after changing a map or
+    layout, call its .openView() so the change appears instantly.
     """
     result = live_execute(code, timeout=timeout_seconds, action=action if action else None)
     return json.dumps(result, indent=2, ensure_ascii=False, default=repr)

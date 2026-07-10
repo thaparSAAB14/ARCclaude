@@ -40,6 +40,31 @@ def _send(obj: dict) -> None:
     sys.stdout.flush()
 
 
+# Plain-language translations for the arcpy errors non-technical users hit
+# most. Matched as substrings against the error text + GP messages.
+FRIENDLY_HINTS = [
+    ("000732", "An input dataset or path could not be found - double-check the file path and that the data actually exists there."),
+    ("does not exist", "Something referenced in the command does not exist - usually a wrong path or a layer name that has changed."),
+    ("000258", "The output already exists and this tool refused to overwrite it - use a different output name."),
+    ("000464", "The data is locked because another program is using it - often ArcGIS Pro itself has it open. Close it there or restart the session to release locks."),
+    ("schema lock", "The data is locked because another program is using it - often ArcGIS Pro itself has it open. Close it there or restart the session to release locks."),
+    ("000210", "The output location cannot be written to - the folder may not exist, or Windows permissions are blocking it."),
+    ("000824", "This tool needs a license or extension that is not currently available - check it is enabled in ArcGIS Pro's licensing settings."),
+    ("licens", "A license or extension is not available - check ArcGIS Pro's licensing settings."),
+    ("invalid expression", "A selection/filter expression was not understood - shapefile field names need double quotes, e.g. \"POP\" > 1000."),
+    ("999999", "ArcGIS raised its generic catch-all error - most often invalid geometry or unexpected input data. Repairing geometry or simplifying inputs usually fixes it."),
+    ("spatial reference", "A coordinate-system mismatch is involved - reprojecting the data to match the map usually fixes it."),
+]
+
+
+def _friendly_hint(text: str) -> str | None:
+    lowered = text.lower()
+    for key, hint in FRIENDLY_HINTS:
+        if key in lowered:
+            return hint
+    return None
+
+
 def _error_payload(req_id, exc: BaseException, stdout_text: str = "") -> dict:
     payload = {
         "id": req_id,
@@ -57,6 +82,9 @@ def _error_payload(req_id, exc: BaseException, stdout_text: str = "") -> dict:
                 payload["gp_messages"] = gp_messages
         except Exception:
             pass
+    hint = _friendly_hint(payload["error"] + " " + payload.get("gp_messages", ""))
+    if hint:
+        payload["friendly_hint"] = hint
     return payload
 
 
@@ -284,13 +312,24 @@ def op_create_features(req: dict) -> dict:
         except OSError:
             pass
 
-    return {
+    resp = {
         "id": req["id"],
         "ok": True,
         "created": out_path,
         "messages": arcpy.GetMessages(),
         "description": _describe(out_path),
     }
+    # Self-healing transparency: shapefiles silently shorten field names to 10
+    # characters - tell the caller what happened so nobody hunts for a "lost" field.
+    if out_path.lower().endswith(".shp"):
+        long_names = sorted({k for f in parsed.get("features", [])
+                             for k in (f.get("properties") or {}) if len(k) > 10})
+        if long_names:
+            resp["field_note"] = (
+                "Shapefiles limit field names to 10 characters, so these were "
+                "shortened automatically: " + ", ".join(long_names) +
+                ". The data itself is unchanged.")
+    return resp
 
 
 # --------------------------------------------------------------------------

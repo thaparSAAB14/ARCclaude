@@ -5,6 +5,20 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="300">
     <UserControl.Resources>
+        <LinearGradientBrush x:Key="BridgeGrad" MappingMode="Absolute" StartPoint="250,210" EndPoint="550,180">
+            <GradientStop Color="#8B5CF6" Offset="0.0"/>
+            <GradientStop Color="#3B82F6" Offset="0.5"/>
+            <GradientStop Color="#10B981" Offset="1.0"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="SetuTextGrad" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#EC4899" Offset="0.0"/>
+            <GradientStop Color="#8B5CF6" Offset="1.0"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="ArcTextGrad" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#3B82F6" Offset="0.0"/>
+            <GradientStop Color="#10B981" Offset="1.0"/>
+        </LinearGradientBrush>
+
         <Style x:Key="StatusIndicatorStyle" TargetType="Ellipse">
             <Setter Property="Width" Value="10"/>
             <Setter Property="Height" Value="10"/>
@@ -18,6 +32,17 @@
                             <DropShadowEffect Color="#10B981" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/>
                         </Setter.Value>
                     </Setter>
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard x:Name="PulseStoryboard">
+                            <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                 From="1.0" To="0.35" Duration="0:0:0.9"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <StopStoryboard BeginStoryboardName="PulseStoryboard"/>
+                    </DataTrigger.ExitActions>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -109,7 +134,32 @@
             <!-- Header Card Panel -->
             <Border DockPanel.Dock="Top" Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="ARCclaude Live Link" FontSize="18" FontWeight="Bold" Foreground="#F8FAFC" Margin="0,0,0,8"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <Viewbox Width="46" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                            <Canvas Width="690" Height="390">
+                                <Canvas.RenderTransform>
+                                    <TranslateTransform X="-55" Y="-55"/>
+                                </Canvas.RenderTransform>
+                                <Path Stroke="{StaticResource BridgeGrad}" StrokeThickness="12" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Data="M 250,210 C 330,110 470,110 550,180"/>
+                                <Path Stroke="{StaticResource BridgeGrad}" StrokeThickness="7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Opacity="0.7" Data="M 270,225 C 340,130 460,130 535,195"/>
+                                <Path Stroke="#8B5CF6" StrokeThickness="10" Data="M 250,120 Q 250,250 120,250 Q 250,250 250,380 Q 250,250 380,250 Q 250,250 250,120 Z"/>
+                                <Path Stroke="#EC4899" StrokeThickness="9" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Data="M 250,120 L 250,85 M 250,380 L 250,415 M 120,250 L 85,250 M 380,250 L 415,250"/>
+                                <Ellipse Canvas.Left="228" Canvas.Top="228" Width="44" Height="44" Fill="#E879F9"/>
+                                <Ellipse Canvas.Left="430" Canvas.Top="130" Width="240" Height="240" Stroke="#3B82F6" StrokeThickness="11"/>
+                                <Ellipse Canvas.Left="495" Canvas.Top="130" Width="110" Height="240" Stroke="#3B82F6" StrokeThickness="7" Opacity="0.85"/>
+                                <Path Stroke="#10B981" StrokeThickness="9" Opacity="0.9" Data="M 430,250 L 670,250"/>
+                                <Path Stroke="#10B981" StrokeThickness="7" Opacity="0.85" Data="M 445,190 Q 550,215 655,190 M 445,310 Q 550,285 655,310"/>
+                            </Canvas>
+                        </Viewbox>
+                        <StackPanel VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="SETU" FontSize="17" FontWeight="Black" Foreground="{StaticResource SetuTextGrad}"/>
+                                <TextBlock Text=" / " FontSize="17" FontWeight="Light" Foreground="#9CA3AF"/>
+                                <TextBlock Text="ARCCLAUDE" FontSize="17" FontWeight="ExtraBold" Foreground="{StaticResource ArcTextGrad}"/>
+                            </StackPanel>
+                            <TextBlock Text="AI cowork link for ArcGIS Pro" FontSize="10" Foreground="#64748B"/>
+                        </StackPanel>
+                    </StackPanel>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,16">
                         <Ellipse Style="{StaticResource StatusIndicatorStyle}"/>
                         <TextBlock Text="{Binding StatusText}" Foreground="#E2E8F0" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
