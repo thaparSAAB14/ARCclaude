@@ -10,6 +10,10 @@ build/
 # uv
 uv.lock
 
+# .NET add-in build output
+addin/**/bin/
+addin/**/obj/
+
 # ArcGIS scratch artifacts
 *.gdb/
 scratch/

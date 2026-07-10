@@ -35,8 +35,14 @@
       the installer wires it up automatically
 - [ ] Remote/hosted MCP mode so claude.ai (web) can drive a machine running
       ArcGIS Pro (auth required; design needed)
-- [ ] ArcGIS Pro SDK (.NET) add-in: dockable chat pane hosting the same agent,
-      reusing the Live Link command protocol
+- [x] **ArcGIS Pro add-in v1 scaffold** (`addin/`): WPF dockpane with cowork
+      toggle, native Live Link host (FileSystemWatcher + GP runner .pyt with
+      CURRENT access, heartbeat) — same file-queue protocol, no pasted
+      listener, no freeze risk. Compiles clean against Pro 3.7 SDK via
+      `dotnet build` + `package.ps1` (no Visual Studio). Design:
+      [ADDIN_DESIGN.md](ADDIN_DESIGN.md). ⚠ not yet run-tested inside Pro
+- [ ] Add-in v2: OperationManager undo (Ctrl+Z for AI changes), CIM JSON diff
+      tab, Swipe visual diff, persistent live namespace, AvalonEdit console
 - [ ] `georeference_map` tool: scanned map → CV grid detection → warp, < 3 min
       (workflow proven on GSC OF 3511: 3.4 m / 2.5 m RMS)
 - [ ] Drive the open Pro session: active map, views, selections, bookmarks, editing

@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>ARCclaude.Addin</RootNamespace>
+    <AssemblyName>ARCclaude.Addin</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Esri's official SDK package for the ArcGIS.Desktop.* references.
+         ExcludeAssets="build": Esri's packaging targets need .NET Framework
+         MSBuild (CodeTaskFactory) and fail under `dotnet build`; we compile
+         with dotnet and package the .esriAddinX with ..\package.ps1 instead.
+         Building inside Visual Studio? Remove ExcludeAssets and VS will
+         package it the official way. -->
+    <PackageReference Include="Esri.ArcGISPro.Extensions30" Version="3.*" ExcludeAssets="build" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Config.daml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Runner\arcclaude_runner.pyt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

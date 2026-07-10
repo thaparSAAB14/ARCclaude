@@ -1,0 +1,37 @@
+<ArcGIS defaultAssembly="ARCclaude.Addin.dll" defaultNamespace="ARCclaude.Addin"
+        xmlns="http://schemas.esri.com/DADF/Registry"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Program%20Files/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
+  <AddInInfo id="{8f4e1c2a-9b7d-4e3f-a1c5-6d2b8e9f0a37}" version="0.1.0" desktopVersion="3.4" product="ArcGISPro">
+    <Name>ARCclaude</Name>
+    <Description>AI cowork link for ArcGIS Pro. Hosts the ARCclaude Live Link natively: AI assistants (via the ARCclaude MCP server) can drive this session - no Python-window listener needed.</Description>
+    <Author>ARCclaude contributors</Author>
+    <Company>ARCclaude (Apache-2.0, github.com/thaparSAAB14/ARCclaude)</Company>
+    <Date>2026-07-09</Date>
+    <Subject>Framework</Subject>
+  </AddInInfo>
+
+  <modules>
+    <insertModule id="ARCclaude_Module" className="Module1" autoLoad="true" caption="ARCclaude">
+      <groups>
+        <group id="ARCclaude_Group" caption="ARCclaude" appearsOnAddInTab="true">
+          <button refID="ARCclaude_ShowPane" size="large" />
+        </group>
+      </groups>
+      <controls>
+        <button id="ARCclaude_ShowPane" caption="ARCclaude" className="ShowPaneButton"
+                loadOnClick="true"
+                smallImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/GenericButtonBlue16.png"
+                largeImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/GenericButtonBlue32.png">
+          <tooltip heading="ARCclaude">Open the ARCclaude cowork pane.<disabledText /></tooltip>
+        </button>
+      </controls>
+      <dockPanes>
+        <dockPane id="ARCclaude_Pane" caption="ARCclaude" className="ARCclaudePaneViewModel"
+                  dock="group" dockWith="esri_core_projectDockPane">
+          <content className="ARCclaudePaneView" />
+        </dockPane>
+      </dockPanes>
+    </insertModule>
+  </modules>
+</ArcGIS>
