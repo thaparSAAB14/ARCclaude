@@ -76,7 +76,8 @@ same tools an analyst would."
 > (Claude, GPT, Gemini, or fully-offline local models), exposes all ~1,800
 > geoprocessing tools dynamically, keeps a persistent REPL session, and has
 > a "Live Link" mode that coworks inside your open Pro session. One-line
-> installer, four test suites, beginner-friendly app included.
+> installer auto-connects it to Claude Desktop/Code — non-technical users
+> just install and talk to Claude.
 > Repo: https://github.com/thaparSAAB14/ARCclaude — feedback and PRs welcome!
 
 **r/gis:**

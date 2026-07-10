@@ -3,7 +3,6 @@
   arcclaude              start the MCP server (stdio) - default, so existing
                          Claude Desktop/Code registrations keep working
   arcclaude serve        same, explicit
-  arcclaude app          open the ARCclaude App (beginner-friendly chat UI)
   arcclaude chat         agentic AI chat in your terminal (Codex-CLI style)
   arcclaude login        store an AI provider API key
   arcclaude live         print the one-liner that starts cowork mode in Pro
@@ -26,9 +25,6 @@ def main() -> None:
     elif cmd == "serve" or not argv:
         from .server import main as serve
         serve()
-    elif cmd == "app":
-        from .webapp import main as app_main
-        app_main()
     elif cmd == "chat":
         from .chat import cmd_chat
         cmd_chat(argv[1:])

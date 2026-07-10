@@ -250,15 +250,6 @@ if ($NoClientConfig) {
     }
 }
 
-# ---------------------------------------------------------------- desktop launcher
-$desktop = [Environment]::GetFolderPath('Desktop')
-if ($desktop -and (Test-Path $desktop)) {
-    $launcher = Join-Path $desktop 'ARCclaude App.cmd'
-    $content = "@echo off`r`ntitle ARCclaude App`r`nuv --directory `"$InstallDir`" run arcclaude app`r`npause`r`n"
-    [System.IO.File]::WriteAllText($launcher, $content)
-    Write-Ok "Desktop launcher created: ARCclaude App"
-}
-
 # ---------------------------------------------------------------- done
 Write-Host ''
 Write-Host '  =============================================' -ForegroundColor DarkGreen
@@ -270,7 +261,8 @@ if ($configured.Count -gt 0) {
     Write-Host ('   Configured: ' + ($configured -join ', '))
 }
 Write-Host ''
-Write-Host '   Try it - ask your AI:' -ForegroundColor White
+Write-Host '   Now open Claude Desktop (or Claude Code) and just talk:' -ForegroundColor White
 Write-Host '     "Check the ArcGIS session status"' -ForegroundColor Yellow
-Write-Host '   (first call takes 20-60s while arcpy checks out your license)' -ForegroundColor Gray
+Write-Host '     "Make a shapefile of the 3 biggest parks near me"' -ForegroundColor Yellow
+Write-Host '   (first call takes 20-60s while ArcGIS wakes up; then it is fast)' -ForegroundColor Gray
 Write-Host ''

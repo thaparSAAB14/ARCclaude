@@ -13,7 +13,7 @@ ARCclaude's position: **the open, model-agnostic, full-execution option.**
 | Fully offline option | ❌ | ❌ | ❌ | ✅ (local models) |
 | Geoprocessing coverage | opens tools w/ preset params | ~30 curated tools | QGIS algorithms | ✅ all ~1,800 arcpy tools, discovered dynamically |
 | Persistent agent session (REPL) | ❌ | varies | — | ✅ |
-| Works without a paid AI client | ❌ | ❌ (needs Claude Desktop) | ✅ | ✅ own App + terminal |
+| Works without a paid AI client | ❌ | ❌ (needs Claude Desktop) | ✅ | ✅ terminal chat (BYO key / local model) |
 | Drives the OPEN Pro session | ✅ (in-app) | rare | ✅ (in QGIS) | ✅ Live Link |
 | Headless automation (Pro closed) | ❌ | ✅ | ❌ | ✅ same engine |
 | Scanned-map georeferencing (CV) | ❌ | ❌ | raster tracing (different) | ✅ proven 3.4 m RMS workflow |

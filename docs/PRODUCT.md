@@ -23,16 +23,20 @@ persistent ArcPy worker), so capabilities land everywhere at once.
 For people who already have an AI client (Claude Desktop/Code, Cursor…).
 Model-agnostic, uses the client's own AI subscription. 11 tools today.
 
-## Pillar 2 — the App & the terminal (v0.3–0.4)
+## Pillar 2 — Claude IS the interface (v0.5 repositioning)
 
-**`arcclaude app` (v0.4)** — the beginner surface: a local web app (auto-opens
-in the browser) with a chat box, live status dots (Engine / Pro / Live Link),
-one-time key setup in Settings, and a Connect-Pro button. Everything else —
-worker startup, provider calls, queueing — is automatic and invisible.
-Desktop launcher installed by `install.ps1`. Same agent core as the CLI
-(`src/arcclaude/agent.py`).
+Main users never see ARCclaude. They run the one-line installer, which wires
+the MCP server into **Claude Desktop and Claude Code** — then they just talk
+to Claude. No custom UI to learn, no key management (their Claude subscription
+covers it), no repo. The custom browser App shipped in v0.4 was **removed in
+v0.5** by design (archived on the `legacy-app` branch): maintaining a parallel
+chat UI added surface without adding capability Claude doesn't already have.
 
-### `arcclaude chat`: the terminal flavor (v0.3)
+Constraint worth stating: Claude must run on the same PC as ArcGIS Pro —
+claude.ai in a web browser cannot reach local software. A hosted/remote MCP
+mode is a roadmap item.
+
+### `arcclaude chat`: the terminal flavor (v0.3, kept for nerds)
 
 A Codex-CLI-style agentic REPL — no Claude Desktop/Code required:
 

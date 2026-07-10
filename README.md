@@ -40,19 +40,25 @@ Two design decisions make this robust:
 - Windows with **ArcGIS Pro 3.x** installed and licensed
 - [`uv`](https://docs.astral.sh/uv/) (installs its own Python — you don't need one)
 
-## Quickstart
+## Install (everyone) — one command, then just talk to Claude
 
-### One-command install (recommended)
-
-Paste into PowerShell — like a game installer, it checks ArcGIS Pro, installs `uv` if needed, downloads ARCclaude, and auto-configures Claude Code and Claude Desktop:
+You do **not** need this repo, git, or any coding. Paste one line into PowerShell:
 
 ```powershell
 irm https://raw.githubusercontent.com/thaparSAAB14/ARCclaude/main/install.ps1 | iex
 ```
 
-Or download the repo and **double-click `install.cmd`**. Re-running it updates an existing install.
+It checks ArcGIS Pro, installs what's needed, and **auto-connects ARCclaude to
+Claude Desktop and Claude Code**. Then open **Claude Desktop** (or Claude Code)
+and just talk: *"make a shapefile of the 3 biggest parks near me."* That's the
+whole product — Claude is the interface; ARCclaude works invisibly underneath.
+Re-running the same line updates you to the latest version.
 
-### Manual install
+> Note: Claude must run **on the same PC** as ArcGIS Pro (Claude Desktop or
+> Claude Code). The claude.ai website in a browser cannot reach software on
+> your machine — a hosted/remote mode is on the roadmap.
+
+### Manual install (nerds)
 
 ```powershell
 git clone https://github.com/thaparSAAB14/ARCclaude.git
@@ -106,22 +112,9 @@ Any other MCP-capable client (Cursor, Windsurf, open-source agents, GPT/Gemini v
 
 Because discovery is dynamic (`arcpy.ListTools`), newly installed extensions and custom toolboxes are exposed automatically — no code changes needed.
 
-## The App — easiest way in (no terminal skills needed)
+## No Claude subscription? The nerd door (terminal chat)
 
-```powershell
-uv run arcclaude app        # or double-click "ARCclaude App.cmd"
-```
-
-A chat window opens in your browser. First run asks for an AI key (Settings);
-after that you just type — *"map the flood zones near my site"* — and the
-engine, worker session and Live Link detection run automatically in the
-background. Status dots show Engine / ArcGIS Pro / Live Link at a glance,
-and **Connect Pro** gives you the one copy-paste line for cowork mode.
-The installer also puts an **ARCclaude App** launcher on your Desktop.
-
-## No Claude Desktop? Use the built-in terminal app
-
-ARCclaude is also a standalone agentic CLI (bring your own API key — Anthropic,
+ARCclaude also ships a standalone agentic CLI (bring your own API key — Anthropic,
 OpenAI, Gemini-compat, Groq, or a free local model via Ollama):
 
 ```powershell
@@ -173,7 +166,7 @@ architecture — the Phase-3 add-in replaces this with proper in-app threading.
 
 ## Status
 
-**Alpha (v0.4.0).** The core execution engine works end-to-end. The surface area of the vision — Pro SDK add-in for live session control, ArcGIS Online/Enterprise, open-data connectors — is roadmap. Issues and PRs welcome.
+**Alpha (v0.5.0).** The core execution engine works end-to-end. The surface area of the vision — Pro SDK add-in for live session control, ArcGIS Online/Enterprise, open-data connectors — is roadmap. Issues and PRs welcome.
 
 ## License
 
