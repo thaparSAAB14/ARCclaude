@@ -37,7 +37,8 @@ TOOL_SPECS = [
      "Run Python INSIDE the user's open ArcGIS Pro app (CURRENT project, live map). "
      "If no listener responds, relay the returned paste-line hint to the user.",
      {"code": ("string", "Python source to execute in the live session", True),
-      "timeout_seconds": ("number", "seconds to wait for the live session (default 60)", False)}),
+      "timeout_seconds": ("number", "seconds to wait for the live session (default 60)", False),
+      "action": ("string", "name of the action being performed (e.g. 'Symbology', 'Buffer')", False)}),
     ("run_gp_tool",
      "Execute a geoprocessing tool by name ('Buffer_analysis' or 'analysis.Buffer').",
      {"tool": ("string", "tool name", True),
@@ -111,7 +112,9 @@ def dispatch(bridge: ArcPyBridge, name: str, args: dict) -> str:
     """Execute one tool call against the engine; return a string for the model."""
     try:
         if name == "pro_live_execute":
-            r = live_execute(args.get("code", ""), timeout=float(args.get("timeout_seconds", 60)))
+            r = live_execute(args.get("code", ""),
+                             timeout=float(args.get("timeout_seconds", 60)),
+                             action=args.get("action"))
         elif name == "session_status":
             r = bridge.start() if not bridge.alive else bridge.request("ping", timeout=30)
         elif name == "restart_session":

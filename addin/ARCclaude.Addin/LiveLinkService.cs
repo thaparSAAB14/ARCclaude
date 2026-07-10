@@ -88,12 +88,16 @@ namespace ARCclaude.Addin
             {
                 if (!File.Exists(cmdPath)) return;   // another handler claimed it
 
-                string id, code;
+                string id, code, action = null;
                 try
                 {
                     using var doc = JsonDocument.Parse(await ReadWithRetryAsync(cmdPath));
                     id = doc.RootElement.GetProperty("id").GetString();
                     code = doc.RootElement.GetProperty("code").GetString();
+                    if (doc.RootElement.TryGetProperty("action", out var actionProp))
+                    {
+                        action = actionProp.GetString();
+                    }
                 }
                 catch (Exception ex) when (ex is JsonException or KeyNotFoundException or IOException)
                 {
@@ -107,7 +111,8 @@ namespace ARCclaude.Addin
                 var codeFile = Path.Combine(Path.GetTempPath(), $"arcclaude_live_{id}.py");
                 await File.WriteAllTextAsync(codeFile, code);
 
-                Log?.Invoke($"⚙ executing {id} ...");
+                string displayName = !string.IsNullOrEmpty(action) ? action : id;
+                Log?.Invoke($"⚙ executing {displayName} ...");
                 var runner = Path.Combine(AddinFolder(), "Runner", "arcclaude_runner.pyt");
                 var tool = runner + "\\RunCode";
                 var args = Geoprocessing.MakeValueArray(codeFile, LiveDir, id);
@@ -132,7 +137,7 @@ namespace ARCclaude.Addin
                 }
 
                 _executed++;
-                Log?.Invoke($"  {id} -> {(result.IsFailed ? "ERROR" : "ok")}");
+                Log?.Invoke($"  {displayName} -> {(result.IsFailed ? "ERROR" : "ok")}");
                 try { File.Delete(codeFile); } catch (IOException) { }
             }
             finally

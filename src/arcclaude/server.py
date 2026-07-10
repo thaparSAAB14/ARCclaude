@@ -164,7 +164,7 @@ def inspect_project(path: str) -> str:
 
 
 @mcp.tool()
-def pro_live_execute(code: str, timeout_seconds: float = 60) -> str:
+def pro_live_execute(code: str, timeout_seconds: float = 60, action: str = "") -> str:
     """Execute Python INSIDE the currently open ArcGIS Pro application.
 
     Unlike arcpy_execute (headless background session), this runs in the live
@@ -176,7 +176,7 @@ def pro_live_execute(code: str, timeout_seconds: float = 60) -> str:
     arcpy_execute). Caution: prefer data/layer/symbology operations; avoid
     rapid or repeated view/camera manipulation, which can destabilize Pro.
     """
-    result = live_execute(code, timeout=timeout_seconds)
+    result = live_execute(code, timeout=timeout_seconds, action=action if action else None)
     return json.dumps(result, indent=2, ensure_ascii=False, default=repr)
 
 

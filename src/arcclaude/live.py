@@ -38,7 +38,7 @@ def listener_alive(max_age_seconds: float = 5.0) -> bool:
         return False
 
 
-def live_execute(code: str, timeout: float = 60.0) -> dict:
+def live_execute(code: str, timeout: float = 60.0, action: str | None = None) -> dict:
     """Queue code for the live Pro session and wait for its result."""
     LIVE_DIR.mkdir(parents=True, exist_ok=True)
     cmd_id = uuid.uuid4().hex[:12]
@@ -46,7 +46,10 @@ def live_execute(code: str, timeout: float = 60.0) -> dict:
     cmd_file = LIVE_DIR / f"cmd_{cmd_id}.json"
     result_file = LIVE_DIR / f"result_{cmd_id}.json"
 
-    cmd_tmp.write_text(json.dumps({"id": cmd_id, "code": code}), encoding="utf-8")
+    payload = {"id": cmd_id, "code": code}
+    if action:
+        payload["action"] = action
+    cmd_tmp.write_text(json.dumps(payload), encoding="utf-8")
     os.replace(cmd_tmp, cmd_file)  # atomic: listener never sees partial files
 
     deadline = time.monotonic() + timeout
