@@ -58,6 +58,11 @@
 
 ## Phase 5 — Open geospatial ecosystem (v0.8+)
 
+- [x] **ArcGIS → QGIS project conversion** (`export_to_qgis`, feature/qgis-export):
+      .aprx → .qgz with layers/CRS/symbology via CIM extraction + open-XML
+      emission; GDB rasters self-healed to GeoTIFF; validated by headless PyQGIS
+- [ ] QGIS export v2: labels, layouts, more symbol layer types, color ramps
+
 - [ ] AI-assisted digitizing of scanned/raster maps (Bunting Labs-style vector
       autocomplete), building on Image Analyst deep-learning tools
 - [ ] Open-data connectors: STAC, OpenStreetMap, CKAN, Earthdata, Copernicus

@@ -450,6 +450,202 @@ def op_inspect_project(req: dict) -> dict:
 
 
 # --------------------------------------------------------------------------
+# op: extract_qgis_manifest — distill an .aprx (via CIM) for QGIS export
+# --------------------------------------------------------------------------
+
+def _cim_rgba(color) -> list | None:
+    """Any CIM color -> [r, g, b, a255], or None if unreadable."""
+    try:
+        vals = list(color.values)
+        kind = type(color).__name__
+    except Exception:
+        return None
+    try:
+        if kind == "CIMRGBColor" and len(vals) >= 3:
+            a = vals[3] if len(vals) > 3 else 100
+            return [int(round(vals[0])), int(round(vals[1])), int(round(vals[2])),
+                    int(round(a * 2.55))]
+        if kind == "CIMHSVColor" and len(vals) >= 3:
+            import colorsys
+            r, g, b = colorsys.hsv_to_rgb(vals[0] / 360.0, vals[1] / 100.0, vals[2] / 100.0)
+            a = vals[3] if len(vals) > 3 else 100
+            return [int(r * 255), int(g * 255), int(b * 255), int(round(a * 2.55))]
+        if kind == "CIMCMYKColor" and len(vals) >= 4:
+            c, m, y, k = [v / 100.0 for v in vals[:4]]
+            a = vals[4] if len(vals) > 4 else 100
+            return [int(255 * (1 - c) * (1 - k)), int(255 * (1 - m) * (1 - k)),
+                    int(255 * (1 - y) * (1 - k)), int(round(a * 2.55))]
+        if kind == "CIMGrayColor" and vals:
+            g = int(round(vals[0]))
+            a = vals[1] if len(vals) > 1 else 100
+            return [g, g, g, int(round(a * 2.55))]
+    except Exception:
+        pass
+    return None
+
+
+def _distill_symbol(sym, depth: int = 0) -> dict:
+    """CIM Point/Line/Polygon symbol -> {fill, stroke, stroke_width, size}."""
+    out: dict = {}
+    if sym is None or depth > 3:
+        return out
+    try:
+        layers = list(sym.symbolLayers or [])
+    except Exception:
+        return out
+    for sl in layers:
+        cls = type(sl).__name__
+        try:
+            if cls == "CIMSolidStroke":
+                out.setdefault("stroke", _cim_rgba(sl.color))
+                out.setdefault("stroke_width", float(getattr(sl, "width", 1.0)))
+            elif cls == "CIMSolidFill":
+                out.setdefault("fill", _cim_rgba(sl.color))
+            elif cls in ("CIMVectorMarker", "CIMCharacterMarker", "CIMPictureMarker"):
+                out.setdefault("size", float(getattr(sl, "size", 6.0)))
+                for g in (getattr(sl, "markerGraphics", None) or []):
+                    inner = _distill_symbol(getattr(g, "symbol", None), depth + 1)
+                    for k, v in inner.items():
+                        out.setdefault(k, v)
+        except Exception:
+            continue
+    return out
+
+
+def _distill_renderer(cim_lyr) -> dict | None:
+    try:
+        r = cim_lyr.renderer
+    except Exception:
+        return None
+    if r is None:
+        return None
+    kind = type(r).__name__
+
+    if kind == "CIMSimpleRenderer":
+        try:
+            return {"type": "single",
+                    "symbol": _distill_symbol(getattr(r.symbol, "symbol", None))}
+        except Exception:
+            return {"type": "single", "symbol": {}}
+
+    if kind == "CIMUniqueValueRenderer":
+        classes = []
+        try:
+            for grp in (r.groups or []):
+                for cl in (grp.classes or []):
+                    values = []
+                    try:
+                        for uv in (cl.values or []):
+                            values.append(list(uv.fieldValues or []))
+                    except Exception:
+                        pass
+                    classes.append({
+                        "values": values,
+                        "label": getattr(cl, "label", "") or "",
+                        "visible": bool(getattr(cl, "visible", True)),
+                        "symbol": _distill_symbol(getattr(cl.symbol, "symbol", None)),
+                    })
+        except Exception:
+            pass
+        default_symbol = None
+        try:
+            if getattr(r, "useDefaultSymbol", False):
+                default_symbol = _distill_symbol(r.defaultSymbol.symbol)
+        except Exception:
+            pass
+        return {"type": "categorized",
+                "fields": list(getattr(r, "fields", []) or []),
+                "classes": classes, "default": default_symbol}
+
+    if kind == "CIMClassBreaksRenderer":
+        breaks = []
+        try:
+            for b in (r.breaks or []):
+                breaks.append({"upper": float(getattr(b, "upperBound", 0)),
+                               "label": getattr(b, "label", "") or "",
+                               "symbol": _distill_symbol(getattr(b.symbol, "symbol", None))})
+        except Exception:
+            pass
+        return {"type": "graduated", "field": getattr(r, "field", "") or "",
+                "breaks": breaks, "minimum": float(getattr(r, "minimumBreak", 0) or 0)}
+
+    return {"type": "unsupported", "cim_type": kind}
+
+
+def _authid(sr) -> str | None:
+    try:
+        if sr and sr.factoryCode:
+            return "EPSG:%d" % sr.factoryCode
+    except Exception:
+        pass
+    return None
+
+
+def op_extract_qgis_manifest(req: dict) -> dict:
+    path = req["path"]
+    aprx = arcpy.mp.ArcGISProject(path)
+    manifest = {"project": path, "maps": []}
+    try:
+        for m in aprx.listMaps():
+            mm = {"name": m.name, "crs": _authid(m.spatialReference),
+                  "layers": [], "skipped": []}
+            for lyr in m.listLayers():
+                try:
+                    if getattr(lyr, "isGroupLayer", False):
+                        continue  # children arrive flattened via listLayers
+                    if getattr(lyr, "isBasemapLayer", False) or getattr(lyr, "isWebLayer", False):
+                        mm["skipped"].append({
+                            "name": lyr.name,
+                            "reason": "web/basemap layer - add an XYZ basemap in QGIS instead"})
+                        continue
+                    entry = {"name": lyr.name, "visible": bool(lyr.visible)}
+                    if lyr.isRasterLayer:
+                        entry["kind"] = "raster"
+                        entry["source"] = lyr.dataSource
+                        try:
+                            entry["crs"] = _authid(arcpy.Describe(lyr).spatialReference)
+                        except Exception:
+                            entry["crs"] = None
+                    elif lyr.isFeatureLayer:
+                        entry["kind"] = "vector"
+                        entry["source"] = lyr.dataSource
+                        d = arcpy.Describe(lyr)
+                        entry["geometry"] = d.shapeType
+                        entry["crs"] = _authid(d.spatialReference)
+                        try:
+                            dq = lyr.definitionQuery
+                            entry["definition_query"] = dq or None
+                        except Exception:
+                            entry["definition_query"] = None
+                        entry["renderer"] = _distill_renderer(lyr.getDefinition("V3"))
+                    else:
+                        mm["skipped"].append({"name": lyr.name,
+                                              "reason": "unsupported layer kind"})
+                        continue
+                    mm["layers"].append(entry)
+                except Exception as exc:
+                    mm["skipped"].append({"name": getattr(lyr, "name", "?"),
+                                          "reason": "%s: %s" % (type(exc).__name__, exc)})
+            manifest["maps"].append(mm)
+    finally:
+        del aprx  # release the project file lock promptly
+    return {"id": req["id"], "ok": True, "manifest": manifest}
+
+
+# --------------------------------------------------------------------------
+# op: copy_raster_tif — GeoTIFF sidecar export (QGIS can't read GDB rasters)
+# --------------------------------------------------------------------------
+
+def op_copy_raster_tif(req: dict) -> dict:
+    import os
+    source, out = req["source"], req["out"]
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    arcpy.management.CopyRaster(source, out)
+    return {"id": req["id"], "ok": True, "tif": out,
+            "messages": arcpy.GetMessages()}
+
+
+# --------------------------------------------------------------------------
 # op: ping — health / license status
 # --------------------------------------------------------------------------
 
@@ -474,6 +670,8 @@ OPS = {
     "export_features": op_export_features,
     "list_workspace": op_list_workspace,
     "inspect_project": op_inspect_project,
+    "extract_qgis_manifest": op_extract_qgis_manifest,
+    "copy_raster_tif": op_copy_raster_tif,
     "ping": op_ping,
 }
 

@@ -169,6 +169,46 @@ def inspect_project(path: str) -> str:
 
 
 @mcp.tool()
+def export_to_qgis(
+    aprx_path: str,
+    output_path: str,
+    map_name: str = "",
+    timeout_seconds: float = 300,
+) -> str:
+    """Convert an ArcGIS Pro project (.aprx) to a QGIS project (.qgz).
+
+    Full-project migration, free: layers, data sources, layer order/visibility,
+    definition queries, CRS, and symbology (single, unique-value/categorized
+    and class-break/graduated renderers - colors, stroke widths, marker
+    sizes) are carried across. The .qgz opens directly in QGIS 3.x; data
+    stays in place (shapefiles/geodatabases are read by QGIS via OGR).
+    Basemap/web layers can't be converted and are listed in skipped_layers
+    (add an XYZ basemap in QGIS instead). Layouts are not converted yet.
+    `map_name` picks a specific map when the project has several (default:
+    first map).
+    """
+    from .qgis_export import heal_gdb_rasters, write_qgz
+
+    def _req(op: str, **fields) -> dict:
+        try:
+            return bridge.request(op, timeout=timeout_seconds, **fields)
+        except WorkerError as exc:
+            return {"ok": False, "error": str(exc)}
+
+    resp = _req("extract_qgis_manifest", path=aprx_path)
+    if not resp.get("ok"):
+        return _dump(resp)
+    fixes = heal_gdb_rasters(resp["manifest"], output_path, _req)
+    try:
+        summary = write_qgz(resp["manifest"], output_path, map_name or None)
+    except (ValueError, OSError) as exc:
+        return json.dumps({"error": f"{type(exc).__name__}: {exc}"})
+    if fixes:
+        summary["auto_fixes"] = fixes
+    return json.dumps(summary, indent=2, ensure_ascii=False, default=repr)
+
+
+@mcp.tool()
 def pro_live_execute(code: str, timeout_seconds: float = 60, action: str = "") -> str:
     """Execute Python INSIDE the currently open ArcGIS Pro application.
 

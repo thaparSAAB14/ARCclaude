@@ -76,6 +76,13 @@ TOOL_SPECS = [
      {"path": ("string", "dataset path", True),
       "where": ("string", "SQL where clause", False),
       "limit": ("integer", "max features (default 1000)", False)}),
+    ("export_to_qgis",
+     "Convert an ArcGIS Pro project (.aprx) to a QGIS project (.qgz): layers, "
+     "sources, CRS, and symbology (single/categorized/graduated). Basemaps are "
+     "skipped with a note; layouts not yet converted.",
+     {"aprx_path": ("string", "path to the .aprx", True),
+      "output_path": ("string", "output .qgz path", True),
+      "map_name": ("string", "which map to convert if several (default first)", False)}),
     ("list_workspace", "Inventory a geodatabase or folder.",
      {"path": ("string", "workspace path", True)}),
     ("inspect_project", "Maps, layers, layouts of an .aprx project file.",
@@ -147,6 +154,24 @@ def dispatch(bridge: ArcPyBridge, name: str, args: dict) -> str:
         elif name == "export_features":
             r = bridge.request("export_features", timeout=300, path=args.get("path", ""),
                                where=args.get("where", ""), limit=int(args.get("limit", 1000)))
+        elif name == "export_to_qgis":
+            from .qgis_export import heal_gdb_rasters, write_qgz
+            r = bridge.request("extract_qgis_manifest", timeout=300,
+                               path=args.get("aprx_path", ""))
+            if r.get("ok"):
+                def _req(op, **fields):
+                    try:
+                        return bridge.request(op, timeout=300, **fields)
+                    except (WorkerError, FileNotFoundError) as exc:
+                        return {"ok": False, "error": str(exc)}
+                fixes = heal_gdb_rasters(r["manifest"], args.get("output_path", ""), _req)
+                try:
+                    r = write_qgz(r["manifest"], args.get("output_path", ""),
+                                  args.get("map_name") or None)
+                    if fixes:
+                        r["auto_fixes"] = fixes
+                except (ValueError, OSError) as exc:
+                    r = {"error": f"{type(exc).__name__}: {exc}"}
         elif name == "search_gp_tools":
             r = bridge.request("search_tools", query=args.get("query", ""),
                                limit=int(args.get("limit", 40)))
