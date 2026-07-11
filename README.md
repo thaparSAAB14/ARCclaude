@@ -106,6 +106,7 @@ Any other MCP-capable client (Cursor, Windsurf, open-source agents, GPT/Gemini v
 | `run_gp_tool` | Execute a GP tool by name with parameters; returns outputs + messages |
 | `create_features` | **Make vector data from GeoJSON** — shapefiles or geodatabase feature classes, fields auto-created, geometry type inferred |
 | `export_features` | Read any vector dataset back as GeoJSON (SQL `where` filter, row limit) |
+| `export_to_qgis` | **Convert a whole .aprx to a QGIS project (.qgz)** — layers, CRS, symbology carried across, free ([details](docs/QGIS_EXPORT.md)) |
 | `describe_data` | Dataset profile: type, CRS, extent, fields, row count |
 | `list_workspace` | Inventory a geodatabase or folder |
 | `inspect_project` | Maps, layers, sources, layouts of an `.aprx` |
