@@ -23,15 +23,17 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
+          # uv.lock is not committed (see .gitignore), so key the cache on the
+          # dependency declarations instead - otherwise it never invalidates.
+          cache-dependency-glob: pyproject.toml
 
-      # uv.lock is not committed (see .gitignore), so resolve fresh rather
-      # than asking for --frozen and failing on a missing lockfile.
+      # Resolve fresh rather than asking for --frozen, which needs a lockfile.
       - name: Sync dependencies
         run: uv sync
 
@@ -56,13 +58,13 @@ jobs:
   addin:
     name: ArcGIS Pro add-in compiles
     runs-on: windows-latest
-    # The Esri SDK NuGet package is only resolvable where ArcGIS Pro is
-    # installed, so this is informational rather than a merge blocker.
-    continue-on-error: true
+    # The Esri SDK package resolves from nuget.org without ArcGIS Pro being
+    # installed, so the add-in is a genuine build gate. Packaging into an
+    # .esriAddinX still happens locally via addin/package.ps1.
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
       - name: Build add-in
