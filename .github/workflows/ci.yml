@@ -30,8 +30,10 @@ jobs:
         with:
           enable-cache: true
 
+      # uv.lock is not committed (see .gitignore), so resolve fresh rather
+      # than asking for --frozen and failing on a missing lockfile.
       - name: Sync dependencies
-        run: uv sync --frozen
+        run: uv sync
 
       - name: Lint (ruff)
         run: uvx ruff check src tests scripts
