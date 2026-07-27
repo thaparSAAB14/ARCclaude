@@ -1,0 +1,85 @@
+name: Bug report
+description: Something in ARCclaude behaves incorrectly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a report. Most ARCclaude issues come
+        down to environment differences, so the version boxes below matter more
+        than they look.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you ask for, and what did ARCclaude do instead?
+      placeholder: |
+        I asked Claude to "buffer every school by 500 m" and it returned ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect instead?
+    validations:
+      required: true
+
+  - type: input
+    id: arcclaude-version
+    attributes:
+      label: ARCclaude version
+      description: "Run: uv run python -c \"import arcclaude; print(arcclaude.__version__)\""
+      placeholder: "0.5.0"
+    validations:
+      required: true
+
+  - type: input
+    id: pro-version
+    attributes:
+      label: ArcGIS Pro version and license
+      placeholder: "3.7, Advanced (ArcInfo)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: client
+    attributes:
+      label: How are you talking to ARCclaude?
+      options:
+        - Claude Desktop
+        - Claude Code
+        - arcclaude chat (terminal)
+        - ArcGIS Pro add-in (cowork mode)
+        - Another MCP client
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error output
+      description: Paste the tool error, traceback, or add-in activity log. Rendered as code - no backticks needed.
+      render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues for this problem
+          required: true
+        - label: I removed any private data (file paths, credentials) from the details above
+          required: true

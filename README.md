@@ -1,5 +1,14 @@
 <p align="center"><img src="docs/logo.svg" width="460" alt="SETU / ARCclaude — AI cowork link for ArcGIS Pro"></p>
 
+<p align="center">
+  <a href="https://github.com/thaparSAAB14/ARCclaude/actions/workflows/ci.yml"><img src="https://github.com/thaparSAAB14/ARCclaude/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="https://github.com/thaparSAAB14/ARCclaude/releases/latest"><img src="https://img.shields.io/github/v/release/thaparSAAB14/ARCclaude?color=blue" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="Apache 2.0 license"></a>
+  <img src="https://img.shields.io/badge/python-3.11%2B-blue.svg" alt="Python 3.11+">
+  <img src="https://img.shields.io/badge/ArcGIS%20Pro-3.x-2C7FB8.svg" alt="ArcGIS Pro 3.x">
+  <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-server-8B5CF6.svg" alt="Model Context Protocol server"></a>
+</p>
+
 # ARCclaude
 
 **An open-source MCP server that gives AI assistants complete access to the ArcGIS Pro ecosystem.**
@@ -158,6 +167,8 @@ architecture — the Phase-3 add-in replaces this with proper in-app threading.
 | `ARCCLAUDE_REQUEST_TIMEOUT` | Default per-request timeout (seconds) | `300` |
 
 ## Project documents
+
+Full index: **[docs/README.md](docs/README.md)**. The essentials:
 
 - [Setup guide](docs/SETUP.md) — complete walkthrough: install, client configs, troubleshooting
 - [Security & privacy](SECURITY.md) — data flow, offline mode, network surface (read this, IT folks)

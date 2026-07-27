@@ -16,7 +16,13 @@ from pathlib import Path
 os.environ["ARCCLAUDE_LIVE_DIR"] = str(
     Path(tempfile.mkdtemp(prefix="arcclaude_live_test_")))
 
-from arcclaude.live import LIVE_DIR, LISTENER_PATH, live_execute, stop_listener, listener_alive  # noqa: E402
+from arcclaude.live import (
+    LISTENER_PATH,
+    LIVE_DIR,
+    listener_alive,
+    live_execute,
+    stop_listener,
+)
 
 PASS = FAIL = 0
 
@@ -24,9 +30,11 @@ PASS = FAIL = 0
 def check(name, cond, detail=""):
     global PASS, FAIL
     if cond:
-        PASS += 1; print(f"  PASS  {name}")
+        PASS += 1
+        print(f"  PASS  {name}")
     else:
-        FAIL += 1; print(f"  FAIL  {name}  {detail}")
+        FAIL += 1
+        print(f"  FAIL  {name}  {detail}")
 
 
 def main() -> int:

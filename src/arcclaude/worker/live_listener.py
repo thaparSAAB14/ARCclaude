@@ -55,7 +55,7 @@ def arcclaude_live(minutes=45, poll=0.5, idle_minutes=10):
     any terminal with `arcclaude live stop` (or wait for the idle timeout).
     """
     try:
-        import arcpy  # noqa: F401 — preload into the shared namespace
+        import arcpy
         _ARCCLAUDE_NS["arcpy"] = arcpy
     except ImportError:
         print("arcclaude live: WARNING - arcpy not importable here.")

@@ -37,7 +37,7 @@ def _emit_console(event: dict) -> None:
     elif kind == "tool_start":
         print(f"  ⚙ {event['tool']} ...", flush=True)
     elif kind == "tool_end" and not event.get("ok", True):
-        print(f"    (tool reported an error - the AI will handle it)")
+        print("    (tool reported an error - the AI will handle it)")
     elif kind == "error":
         print("\n✗ " + event["message"])
 

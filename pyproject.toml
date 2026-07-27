@@ -21,6 +21,10 @@ arcclaude = "arcclaude.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/thaparSAAB14/ARCclaude"
+Documentation = "https://github.com/thaparSAAB14/ARCclaude/blob/main/docs/SETUP.md"
+Repository = "https://github.com/thaparSAAB14/ARCclaude"
+Issues = "https://github.com/thaparSAAB14/ARCclaude/issues"
+Changelog = "https://github.com/thaparSAAB14/ARCclaude/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["hatchling"]
@@ -30,4 +34,37 @@ build-backend = "hatchling.build"
 packages = ["src/arcclaude"]
 
 [dependency-groups]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = ["addin/**/bin", "addin/**/obj"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "SIM", "UP", "S", "RUF", "ISC"]
+ignore = [
+    # ARCclaude deliberately executes arbitrary user/AI-authored Python - that
+    # is the product, not an oversight. See SECURITY.md for the threat model.
+    "S102",   # exec-builtin
+    "S307",   # eval used on a checked AST node
+    # The worker's contract is "errors come back as data, never crash the
+    # session", so broad excepts around arcpy calls are intentional. arcpy
+    # raises many undocumented exception types; narrowing them loses failures.
+    "BLE001", # blind-except
+    "S110",   # try-except-pass, used for best-effort cleanup of temp files
+    "S112",   # try-except-continue: skip an unreadable queue file, keep serving
+    "S603",   # subprocess calls are how we launch Esri's own Python
+    "S607",   # ...sometimes by name, resolved from the registry
+    "E501",   # long lines are prose in docstrings; formatter handles code
+    # try/except/pass is used for best-effort cleanup (unlink a temp file,
+    # release a lock). The explicit form reads plainly in the stdlib-only
+    # worker; contextlib.suppress would only add indentation there.
+    "SIM105",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# S101: asserts are the point of a test.
+# S318: the XML these tests parse is the XML they just generated, so the
+#       untrusted-input warning behind defusedxml does not apply.
+"tests/*" = ["S101", "S318"]

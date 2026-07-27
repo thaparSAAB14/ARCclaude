@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Setup help and troubleshooting
+    url: https://github.com/thaparSAAB14/ARCclaude/blob/main/docs/SETUP.md
+    about: Install problems are usually covered in the setup guide's troubleshooting section.
+  - name: Security or data-privacy question
+    url: https://github.com/thaparSAAB14/ARCclaude/blob/main/SECURITY.md
+    about: What leaves your machine, offline mode, and how to report a vulnerability privately.

@@ -28,9 +28,11 @@ PASS = FAIL = 0
 def check(name, cond, detail=""):
     global PASS, FAIL
     if cond:
-        PASS += 1; print(f"  PASS  {name}")
+        PASS += 1
+        print(f"  PASS  {name}")
     else:
-        FAIL += 1; print(f"  FAIL  {name}  {str(detail)[:300]}")
+        FAIL += 1
+        print(f"  FAIL  {name}  {str(detail)[:300]}")
 
 
 def find_qgis_python() -> str | None:
@@ -54,16 +56,19 @@ def main() -> int:
         maps = manifest.get("maps") or []
         check("has at least one map", len(maps) >= 1)
         the_map = maps[0] if maps else {"layers": [], "skipped": []}
-        vectors = [l for l in the_map.get("layers", []) if l.get("kind") == "vector"]
-        gdb_rasters = [l for l in the_map.get("layers", [])
-                       if l.get("kind") == "raster" and ".gdb" in (l.get("source") or "").lower()]
+        vectors = [lyr for lyr in the_map.get("layers", []) if lyr.get("kind") == "vector"]
+        gdb_rasters = [
+            lyr for lyr in the_map.get("layers", [])
+            if lyr.get("kind") == "raster" and ".gdb" in (lyr.get("source") or "").lower()
+        ]
         check("multiple vector layers found", len(vectors) >= 3, f"got {len(vectors)}")
         check("basemaps were skipped with notes", len(the_map.get("skipped", [])) >= 1)
 
-        categorized = [l for l in vectors
-                       if (l.get("renderer") or {}).get("type") == "categorized"]
+        categorized = [lyr for lyr in vectors
+                       if (lyr.get("renderer") or {}).get("type") == "categorized"]
         check("categorized symbology extracted from CIM", len(categorized) >= 1,
-              str([(l['name'], (l.get('renderer') or {}).get('type')) for l in vectors])[:300])
+              str([(lyr["name"], (lyr.get("renderer") or {}).get("type"))
+                   for lyr in vectors])[:300])
         if categorized:
             classes = categorized[0]["renderer"].get("classes") or []
             check("categories carry values + colors",
@@ -90,7 +95,7 @@ def main() -> int:
     check("summary counts vectors", summary["vector_layers"] == len(vectors), str(summary))
 
     with zipfile.ZipFile(out) as zf:
-        qgs_name = [n for n in zf.namelist() if n.endswith(".qgs")][0]
+        qgs_name = next(n for n in zf.namelist() if n.endswith(".qgs"))
         xml_text = zf.read(qgs_name).decode("utf-8")
     doc = minidom.parseString(xml_text)
     maplayers = doc.getElementsByTagName("maplayer")
@@ -119,10 +124,10 @@ def main() -> int:
             check("QGIS sees every layer",
                   report.get("layer_count") == len(the_map.get("layers", [])),
                   str(report)[:400])
-            invalid = [l for l in report.get("layers", []) if not l["valid"]]
+            invalid = [lyr for lyr in report.get("layers", []) if not lyr["valid"]]
             check("all layers valid (data sources resolve)", not invalid, str(invalid)[:300])
-            cats = [l for l in report.get("layers", [])
-                    if l.get("renderer") == "categorizedSymbol"]
+            cats = [lyr for lyr in report.get("layers", [])
+                    if lyr.get("renderer") == "categorizedSymbol"]
             check("categorized symbology survived into QGIS", len(cats) >= 1,
                   str(report.get("layers"))[:400])
 

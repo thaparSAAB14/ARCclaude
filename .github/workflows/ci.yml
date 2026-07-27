@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint, import & invariants
+    # Windows: ARCclaude is a Windows product and imports winreg for ArcGIS
+    # discovery. ArcGIS Pro itself cannot be installed on a hosted runner, so
+    # the geoprocessing suites in tests/ stay local-only (see CONTRIBUTING.md);
+    # everything that does not need a license is checked here.
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: Lint (ruff)
+        run: uvx ruff check src tests scripts
+
+      - name: Byte-compile all sources
+        run: uv run python -m compileall -q src scripts
+
+      - name: Worker stays stdlib-only
+        run: uv run python scripts/check_worker_invariant.py
+
+      - name: Modules import cleanly
+        run: uv run python -c "import arcclaude, arcclaude.server, arcclaude.agent, arcclaude.live, arcclaude.cli, arcclaude.bridge, arcclaude.discovery; print('ARCclaude', arcclaude.__version__)"
+
+      - name: MCP tool surface is intact
+        run: uv run python -c "from arcclaude.server import mcp; import asyncio; tools = asyncio.run(mcp.list_tools()); print(len(tools), 'tools:', sorted(t.name for t in tools)); assert len(tools) >= 12, 'tool count regressed'"
+
+      - name: Build distribution
+        run: uv build
+
+  addin:
+    name: ArcGIS Pro add-in compiles
+    runs-on: windows-latest
+    # The Esri SDK NuGet package is only resolvable where ArcGIS Pro is
+    # installed, so this is informational rather than a merge blocker.
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build add-in
+        working-directory: addin/ARCclaude.Addin
+        run: dotnet build -c Release

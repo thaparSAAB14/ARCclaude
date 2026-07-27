@@ -140,12 +140,11 @@ def op_run_tool(req: dict) -> dict:
     kwargs = req.get("kwargs", {})
 
     func = getattr(arcpy, tool_name, None)
-    if func is None:
-        # Try module-qualified form, e.g. "analysis.Buffer"
-        if "." in tool_name:
-            module_name, short = tool_name.split(".", 1)
-            module = getattr(arcpy, module_name, None)
-            func = getattr(module, short, None) if module else None
+    # Fall back to the module-qualified form, e.g. "analysis.Buffer"
+    if func is None and "." in tool_name:
+        module_name, short = tool_name.split(".", 1)
+        module = getattr(arcpy, module_name, None)
+        func = getattr(module, short, None) if module else None
     if func is None:
         raise AttributeError(
             f"Tool {tool_name!r} not found. Use search_tools to find the exact "
@@ -435,8 +434,8 @@ def op_inspect_project(req: dict) -> dict:
             "tables": [t.name for t in m.listTables()],
         })
     layouts = [
-        {"name": l.name, "pageWidth": l.pageWidth, "pageHeight": l.pageHeight}
-        for l in aprx.listLayouts()
+        {"name": lyt.name, "pageWidth": lyt.pageWidth, "pageHeight": lyt.pageHeight}
+        for lyt in aprx.listLayouts()
     ]
     info = {
         "path": path,
@@ -463,22 +462,22 @@ def _cim_rgba(color) -> list | None:
     try:
         if kind == "CIMRGBColor" and len(vals) >= 3:
             a = vals[3] if len(vals) > 3 else 100
-            return [int(round(vals[0])), int(round(vals[1])), int(round(vals[2])),
-                    int(round(a * 2.55))]
+            return [round(vals[0]), round(vals[1]), round(vals[2]),
+                    round(a * 2.55)]
         if kind == "CIMHSVColor" and len(vals) >= 3:
             import colorsys
             r, g, b = colorsys.hsv_to_rgb(vals[0] / 360.0, vals[1] / 100.0, vals[2] / 100.0)
             a = vals[3] if len(vals) > 3 else 100
-            return [int(r * 255), int(g * 255), int(b * 255), int(round(a * 2.55))]
+            return [int(r * 255), int(g * 255), int(b * 255), round(a * 2.55)]
         if kind == "CIMCMYKColor" and len(vals) >= 4:
             c, m, y, k = [v / 100.0 for v in vals[:4]]
             a = vals[4] if len(vals) > 4 else 100
             return [int(255 * (1 - c) * (1 - k)), int(255 * (1 - m) * (1 - k)),
-                    int(255 * (1 - y) * (1 - k)), int(round(a * 2.55))]
+                    int(255 * (1 - y) * (1 - k)), round(a * 2.55)]
         if kind == "CIMGrayColor" and vals:
-            g = int(round(vals[0]))
+            g = round(vals[0])
             a = vals[1] if len(vals) > 1 else 100
-            return [g, g, g, int(round(a * 2.55))]
+            return [g, g, g, round(a * 2.55)]
     except Exception:
         pass
     return None
@@ -575,7 +574,7 @@ def _distill_renderer(cim_lyr) -> dict | None:
 def _authid(sr) -> str | None:
     try:
         if sr and sr.factoryCode:
-            return "EPSG:%d" % sr.factoryCode
+            return f"EPSG:{sr.factoryCode}"
     except Exception:
         pass
     return None
@@ -625,7 +624,7 @@ def op_extract_qgis_manifest(req: dict) -> dict:
                     mm["layers"].append(entry)
                 except Exception as exc:
                     mm["skipped"].append({"name": getattr(lyr, "name", "?"),
-                                          "reason": "%s: %s" % (type(exc).__name__, exc)})
+                                          "reason": f"{type(exc).__name__}: {exc}"})
             manifest["maps"].append(mm)
     finally:
         del aprx  # release the project file lock promptly
@@ -726,7 +725,7 @@ def main() -> None:
 
         try:
             _send(handler(req))
-        except BaseException as exc:  # noqa: BLE001 — worker must never die mid-session
+        except BaseException as exc:
             _send(_error_payload(req.get("id"), exc))
 
 

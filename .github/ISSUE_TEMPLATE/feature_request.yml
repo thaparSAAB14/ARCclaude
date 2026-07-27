@@ -1,0 +1,41 @@
+name: Feature request
+description: Suggest a capability for ARCclaude
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What GIS problem are you trying to solve?
+      description: Describe the workflow, not the implementation - it often turns out ARCclaude can already do it via arcpy_execute.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like ARCclaude to do?
+      placeholder: "A tool that ... / Claude should be able to ..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of ARCclaude?
+      options:
+        - MCP server / tools
+        - ArcPy worker (geoprocessing)
+        - Live Link cowork mode
+        - ArcGIS Pro add-in
+        - QGIS export
+        - Installer / setup
+        - Documentation
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Workarounds you have tried
+      description: Including asking the AI to do it with plain arcpy_execute.

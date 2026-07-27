@@ -38,7 +38,7 @@ def main() -> int:
     check("ping ok", r.get("ok") is True, str(r))
 
     print("== exec: persistent state ==")
-    r1 = bridge.request("exec", code="x = 21")
+    bridge.request("exec", code="x = 21")  # sets state for the next call
     r2 = bridge.request("exec", code="x * 2")
     check("state persists across calls", r2.get("result") == "42", str(r2))
 
@@ -63,9 +63,20 @@ def main() -> int:
     check("has usage", bool(r.get("usage")), str(r)[:200])
 
     print("== real geoprocessing: create + buffer ==")
+    # Build a dedicated file geodatabase instead of using arcpy.env.scratchGDB.
+    # The shared scratch path is machine state: an interrupted session can leave
+    # a plain FOLDER named scratch.gdb behind, after which CreateFeatureclass
+    # quietly emits shapefiles, arcpy.Exists() misses them by name, and every
+    # later run fails with "output already exists". Owning the workspace keeps
+    # this suite hermetic and repeatable.
     setup = """
 import arcpy, os
-gdb = arcpy.env.scratchGDB
+folder = arcpy.env.scratchFolder
+gdb = os.path.join(folder, 'arcclaude_smoke.gdb')
+if arcpy.Exists(gdb) and arcpy.Describe(gdb).dataType != 'Workspace':
+    arcpy.management.Delete(gdb)
+if not arcpy.Exists(gdb):
+    arcpy.management.CreateFileGDB(folder, 'arcclaude_smoke.gdb')
 fc = os.path.join(gdb, 'arcclaude_smoke_pts')
 if arcpy.Exists(fc):
     arcpy.management.Delete(fc)
@@ -130,11 +141,19 @@ fc
     bridge.request("exec", code=f"arcpy.management.Delete(r'{shp}')", timeout=60)
 
     print("== cleanup + shutdown ==")
-    bridge.request("exec", code=(
+    # Remove everything this run created, so the next run starts clean even if
+    # it happens on the same machine minutes later.
+    r = bridge.request("exec", code=(
         "import arcpy, os\n"
-        "arcpy.management.Delete(os.path.join(arcpy.env.scratchGDB, 'arcclaude_smoke_pts'))\n"
-        "arcpy.management.Delete('memory/smoke_buf')"
+        "removed = []\n"
+        "gdb = os.path.join(arcpy.env.scratchFolder, 'arcclaude_smoke.gdb')\n"
+        "for target in (gdb, 'memory/smoke_buf'):\n"
+        "    if arcpy.Exists(target):\n"
+        "        arcpy.management.Delete(target)\n"
+        "        removed.append(target)\n"
+        "removed"
     ), timeout=120)
+    check("scratch data cleaned up", r.get("ok") is True, str(r)[:300])
     bridge.stop()
     check("worker stopped", not bridge.alive)
 

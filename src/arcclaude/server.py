@@ -11,7 +11,7 @@ import json
 from mcp.server.fastmcp import FastMCP
 
 from .bridge import ArcPyBridge, WorkerError
-from .live import live_execute, paste_line
+from .live import live_execute
 
 mcp = FastMCP(
     "arcclaude",

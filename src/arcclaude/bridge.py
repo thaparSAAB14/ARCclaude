@@ -133,8 +133,10 @@ class ArcPyBridge:
     def _next_message(self, timeout: float) -> dict:
         try:
             msg = self._lines.get(timeout=timeout)
-        except queue.Empty:
-            raise WorkerError(f"No response from worker within {timeout:.0f}s")
+        except queue.Empty as exc:
+            raise WorkerError(
+                f"No response from worker within {timeout:.0f}s"
+            ) from exc
         if msg.get("event") == "eof":
             raise WorkerError(
                 "Worker process exited unexpectedly. It will restart on the next call."

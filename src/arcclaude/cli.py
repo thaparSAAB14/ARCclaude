@@ -32,7 +32,7 @@ def main() -> None:
         from .chat import cmd_login
         cmd_login(argv[1:])
     elif cmd == "live":
-        from .live import paste_line, stop_listener, listener_alive
+        from .live import listener_alive, paste_line, stop_listener
         if len(argv) > 1 and argv[1] == "stop":
             stop_listener()
             print("Stop signal sent to the Pro listener.")

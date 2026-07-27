@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 
 from .bridge import ArcPyBridge, WorkerError
-from .live import live_execute, paste_line
+from .live import live_execute
 
 CONFIG_FILE = Path.home() / ".arcclaude" / "config.json"
 MAX_TOOL_CHARS = 24000
@@ -43,13 +43,13 @@ House rules (the user relies on these):
 
 TOOL_SPECS = [
     ("arcpy_execute",
-     "Run Python in the persistent headless ArcPy session. arcpy is imported; variables "
-     "persist; last bare expression is returned like a REPL.",
+     ("Run Python in the persistent headless ArcPy session. arcpy is imported; "
+      "variables persist; last bare expression is returned like a REPL."),
      {"code": ("string", "Python source to execute", True),
       "timeout_seconds": ("number", "kill+restart session after this many seconds (default 300)", False)}),
     ("pro_live_execute",
-     "Run Python INSIDE the user's open ArcGIS Pro app (CURRENT project, live map). "
-     "If no listener responds, relay the returned paste-line hint to the user.",
+     ("Run Python INSIDE the user's open ArcGIS Pro app (CURRENT project, live "
+      "map). If no listener responds, relay the returned paste-line hint."),
      {"code": ("string", "Python source to execute in the live session", True),
       "timeout_seconds": ("number", "seconds to wait for the live session (default 60)", False),
       "action": ("string", "name of the action being performed (e.g. 'Symbology', 'Buffer')", False)}),
@@ -67,8 +67,9 @@ TOOL_SPECS = [
     ("describe_data", "Describe a dataset: type, CRS, extent, fields, row count.",
      {"path": ("string", "dataset path", True)}),
     ("create_features",
-     "Create a shapefile (.shp path) or geodatabase feature class from a GeoJSON "
-     "FeatureCollection (WGS84). Fields auto-created; geometry type inferred.",
+     ("Create a shapefile (.shp path) or geodatabase feature class from a "
+      "GeoJSON FeatureCollection (WGS84). Fields auto-created; geometry "
+      "type inferred."),
      {"geojson": ("string", "GeoJSON FeatureCollection as a string", True),
       "output_path": ("string", "output .shp path or gdb feature class path", True),
       "geometry_type": ("string", "POINT|MULTIPOINT|POLYLINE|POLYGON, only for mixed collections", False)}),
@@ -77,9 +78,9 @@ TOOL_SPECS = [
       "where": ("string", "SQL where clause", False),
       "limit": ("integer", "max features (default 1000)", False)}),
     ("export_to_qgis",
-     "Convert an ArcGIS Pro project (.aprx) to a QGIS project (.qgz): layers, "
+     ("Convert an ArcGIS Pro project (.aprx) to a QGIS project (.qgz): layers, "
      "sources, CRS, and symbology (single/categorized/graduated). Basemaps are "
-     "skipped with a note; layouts not yet converted.",
+     "skipped with a note; layouts not yet converted."),
      {"aprx_path": ("string", "path to the .aprx", True),
       "output_path": ("string", "output .qgz path", True),
       "map_name": ("string", "which map to convert if several (default first)", False)}),

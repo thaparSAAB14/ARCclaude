@@ -34,7 +34,7 @@ FALLBACK = {"fill": [141, 90, 153, 255], "stroke": [35, 35, 35, 255],
 
 
 def _rgba_str(rgba) -> str:
-    r, g, b, a = (list(rgba) + [255, 255, 255, 255])[:4]
+    r, g, b, a = ([*list(rgba), 255, 255, 255, 255])[:4]
     return f"{int(r)},{int(g)},{int(b)},{int(a)}"
 
 
@@ -100,7 +100,7 @@ def _renderer_xml(renderer: dict | None, kind: str) -> str:
                         f'value={quoteattr(value)} label={quoteattr(label)} uuid="{i}"/>')
             syms.append(_symbol_xml(kind, cl.get("symbol"), str(i)))
         if renderer.get("default"):
-            cats.append(f'<category render="true" symbol="default" type="string" value="" label="(other)" uuid="d"/>')
+            cats.append('<category render="true" symbol="default" type="string" value="" label="(other)" uuid="d"/>')
             syms.append(_symbol_xml(kind, renderer["default"], "default"))
         return (f'<renderer-v2 type="categorizedSymbol" attr={quoteattr(attr)} '
                 f'forceraster="0" enableorderby="0">'
