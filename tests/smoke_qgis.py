@@ -55,7 +55,14 @@ def main() -> int:
         manifest = r.get("manifest") or {}
         maps = manifest.get("maps") or []
         check("has at least one map", len(maps) >= 1)
-        the_map = maps[0] if maps else {"layers": [], "skipped": []}
+        # Pick whichever map actually has content: this project is edited by
+        # hand between runs, so map order and contents are not ours to assume.
+        the_map = max(maps, key=lambda m: len(m.get("layers") or []),
+                      default={"layers": [], "skipped": []})
+        if not the_map.get("layers"):
+            print(f"SKIP: {Path(APRX).name} currently has no layers to convert.")
+            print("      (Emitter coverage lives in tests/smoke_dispatch_qgis.py.)")
+            return 0
         vectors = [lyr for lyr in the_map.get("layers", []) if lyr.get("kind") == "vector"]
         gdb_rasters = [
             lyr for lyr in the_map.get("layers", [])

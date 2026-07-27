@@ -15,6 +15,20 @@ _KNOWN_PATHS = [
 ]
 
 
+def find_qgis_process() -> str:
+    """Path to QGIS's headless `qgis_process` runner (newest install wins)."""
+    override = os.environ.get("ARCCLAUDE_QGIS_PROCESS")
+    if override:
+        return override
+    hits = sorted(Path(r"C:\Program Files").glob("QGIS*/bin/qgis_process*.bat"))
+    if not hits:
+        raise FileNotFoundError(
+            "Could not find qgis_process. Install QGIS, or set "
+            "ARCCLAUDE_QGIS_PROCESS to the full path of qgis_process*.bat."
+        )
+    return str(hits[-1])
+
+
 def _from_registry() -> str | None:
     """Read the Pro install dir from the registry (HKLM, then HKCU)."""
     try:

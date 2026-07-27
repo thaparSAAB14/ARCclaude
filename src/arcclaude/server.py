@@ -230,6 +230,40 @@ def pro_live_execute(code: str, timeout_seconds: float = 60, action: str = "") -
 
 
 @mcp.tool()
+def qgis_run(algorithm: str = "", params: dict | None = None,
+             timeout_seconds: float = 600) -> str:
+    """Run a QGIS processing algorithm — works with no ArcGIS licence at all.
+
+    Call with no `algorithm` to list every available algorithm (~1000, incl.
+    GDAL/GRASS/SAGA). Otherwise pass an id like 'native:buffer' and `params`
+    as {"INPUT": "roads.shp", "DISTANCE": 500, "OUTPUT": "out.shp"}.
+    Complements export_to_qgis: that converts a project, this does the work.
+    """
+    import subprocess
+
+    from .discovery import find_qgis_process
+    try:
+        exe = find_qgis_process()
+    except FileNotFoundError as exc:
+        return json.dumps({"error": str(exc)})
+    listing = not algorithm
+    cmd = [exe, "list"] if listing else [
+        exe, "run", algorithm, "--",
+        *(f"{k}={v}" for k, v in (params or {}).items()),
+    ]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True,
+                              timeout=timeout_seconds)
+    except subprocess.TimeoutExpired:
+        return json.dumps({"error": f"qgis_process timed out after {timeout_seconds:.0f}s"})
+    # A listing is alphabetical, so keep the head; a run puts its result and
+    # any error at the end, so keep the tail.
+    out = proc.stdout[:20000] if listing else proc.stdout[-20000:]
+    return json.dumps({"ok": proc.returncode == 0, "output": out,
+                       "errors": proc.stderr[-4000:]}, indent=2)
+
+
+@mcp.tool()
 def session_status() -> str:
     """Check the ArcPy session: license level, workspace, live variables.
     Starts the session if it isn't running yet (first start is slow)."""

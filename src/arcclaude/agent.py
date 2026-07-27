@@ -8,12 +8,13 @@ future add-in) can render it.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from pathlib import Path
 
-from .bridge import ArcPyBridge, WorkerError
-from .live import live_execute
+from . import server
+from .bridge import ArcPyBridge
 
 CONFIG_FILE = Path.home() / ".arcclaude" / "config.json"
 MAX_TOOL_CHARS = 24000
@@ -40,66 +41,6 @@ House rules (the user relies on these):
 4. Anticipate non-technical users: validate paths, shapefile field-name limits (10 chars),
    layer order and coordinate systems before running; if you auto-fix a mismatch (e.g.
    reproject to match the map), say what you fixed and why in one plain sentence."""
-
-TOOL_SPECS = [
-    ("arcpy_execute",
-     ("Run Python in the persistent headless ArcPy session. arcpy is imported; "
-      "variables persist; last bare expression is returned like a REPL."),
-     {"code": ("string", "Python source to execute", True),
-      "timeout_seconds": ("number", "kill+restart session after this many seconds (default 300)", False)}),
-    ("pro_live_execute",
-     ("Run Python INSIDE the user's open ArcGIS Pro app (CURRENT project, live "
-      "map). If no listener responds, relay the returned paste-line hint."),
-     {"code": ("string", "Python source to execute in the live session", True),
-      "timeout_seconds": ("number", "seconds to wait for the live session (default 60)", False),
-      "action": ("string", "name of the action being performed (e.g. 'Symbology', 'Buffer')", False)}),
-    ("run_gp_tool",
-     "Execute a geoprocessing tool by name ('Buffer_analysis' or 'analysis.Buffer').",
-     {"tool": ("string", "tool name", True),
-      "args": ("array", "positional parameters", False),
-      "kwargs": ("object", "named parameters", False)}),
-    ("search_gp_tools",
-     "Search all ~1800 geoprocessing tools by space-separated AND terms.",
-     {"query": ("string", "search terms", False),
-      "limit": ("integer", "max results (default 40)", False)}),
-    ("describe_gp_tool", "Get syntax + docs for a geoprocessing tool.",
-     {"tool": ("string", "tool name", True)}),
-    ("describe_data", "Describe a dataset: type, CRS, extent, fields, row count.",
-     {"path": ("string", "dataset path", True)}),
-    ("create_features",
-     ("Create a shapefile (.shp path) or geodatabase feature class from a "
-      "GeoJSON FeatureCollection (WGS84). Fields auto-created; geometry "
-      "type inferred."),
-     {"geojson": ("string", "GeoJSON FeatureCollection as a string", True),
-      "output_path": ("string", "output .shp path or gdb feature class path", True),
-      "geometry_type": ("string", "POINT|MULTIPOINT|POLYLINE|POLYGON, only for mixed collections", False)}),
-    ("export_features", "Read vector data back as GeoJSON (WGS84), optional SQL where filter.",
-     {"path": ("string", "dataset path", True),
-      "where": ("string", "SQL where clause", False),
-      "limit": ("integer", "max features (default 1000)", False)}),
-    ("export_to_qgis",
-     ("Convert an ArcGIS Pro project (.aprx) to a QGIS project (.qgz): layers, "
-     "sources, CRS, and symbology (single/categorized/graduated). Basemaps are "
-     "skipped with a note; layouts not yet converted."),
-     {"aprx_path": ("string", "path to the .aprx", True),
-      "output_path": ("string", "output .qgz path", True),
-      "map_name": ("string", "which map to convert if several (default first)", False)}),
-    ("list_workspace", "Inventory a geodatabase or folder.",
-     {"path": ("string", "workspace path", True)}),
-    ("inspect_project", "Maps, layers, layouts of an .aprx project file.",
-     {"path": ("string", "path to .aprx", True)}),
-    ("session_status", "ArcPy session status: license, workspace, variables.", {}),
-    ("restart_session", "Restart the headless ArcPy session (clears state, releases locks).", {}),
-]
-
-
-def schema_for(params: dict) -> dict:
-    return {
-        "type": "object",
-        "properties": {k: {"type": t, "description": d} for k, (t, d, _r) in params.items()},
-        "required": [k for k, (_t, _d, r) in params.items() if r],
-    }
-
 
 def load_config() -> dict:
     if CONFIG_FILE.exists():
@@ -130,68 +71,24 @@ def resolve_provider(cfg: dict) -> str | None:
     return None
 
 
-def dispatch(bridge: ArcPyBridge, name: str, args: dict) -> str:
-    """Execute one tool call against the engine; return a string for the model."""
+def tool_defs() -> list[tuple[str, str, dict]]:
+    """(name, description, json-schema) for every MCP tool, read from the
+    server itself. One source of truth: a tool added to server.py shows up
+    here, in both provider adapters, and in dispatch() with no other edits."""
+    return [(t.name, t.description or "", t.inputSchema)
+            for t in asyncio.run(server.mcp.list_tools())]
+
+
+def dispatch(name: str, args: dict) -> str:
+    """Execute one tool call through the MCP server; return text for the model."""
     try:
-        if name == "pro_live_execute":
-            r = live_execute(args.get("code", ""),
-                             timeout=float(args.get("timeout_seconds", 60)),
-                             action=args.get("action"))
-        elif name == "session_status":
-            r = bridge.start() if not bridge.alive else bridge.request("ping", timeout=30)
-        elif name == "restart_session":
-            r = bridge.restart()
-        elif name == "arcpy_execute":
-            r = bridge.request("exec", timeout=float(args.get("timeout_seconds", 300)),
-                               code=args.get("code", ""))
-        elif name == "run_gp_tool":
-            r = bridge.request("run_tool", timeout=600, tool=args.get("tool", ""),
-                               args=args.get("args") or [], kwargs=args.get("kwargs") or {})
-        elif name == "create_features":
-            fields = {"geojson": args.get("geojson", ""), "path": args.get("output_path", "")}
-            if args.get("geometry_type"):
-                fields["geometry_type"] = str(args["geometry_type"]).upper()
-            r = bridge.request("create_features", timeout=300, **fields)
-        elif name == "export_features":
-            r = bridge.request("export_features", timeout=300, path=args.get("path", ""),
-                               where=args.get("where", ""), limit=int(args.get("limit", 1000)))
-        elif name == "export_to_qgis":
-            from .qgis_export import heal_gdb_rasters, write_qgz
-            r = bridge.request("extract_qgis_manifest", timeout=300,
-                               path=args.get("aprx_path", ""))
-            if r.get("ok"):
-                def _req(op, **fields):
-                    try:
-                        return bridge.request(op, timeout=300, **fields)
-                    except (WorkerError, FileNotFoundError) as exc:
-                        return {"ok": False, "error": str(exc)}
-                fixes = heal_gdb_rasters(r["manifest"], args.get("output_path", ""), _req)
-                try:
-                    r = write_qgz(r["manifest"], args.get("output_path", ""),
-                                  args.get("map_name") or None)
-                    if fixes:
-                        r["auto_fixes"] = fixes
-                except (ValueError, OSError) as exc:
-                    r = {"error": f"{type(exc).__name__}: {exc}"}
-        elif name == "search_gp_tools":
-            r = bridge.request("search_tools", query=args.get("query", ""),
-                               limit=int(args.get("limit", 40)))
-        elif name == "describe_gp_tool":
-            r = bridge.request("describe_tool", tool=args.get("tool", ""))
-        elif name == "describe_data":
-            r = bridge.request("describe_data", path=args.get("path", ""))
-        elif name == "list_workspace":
-            r = bridge.request("list_workspace", path=args.get("path", ""))
-        elif name == "inspect_project":
-            r = bridge.request("inspect_project", path=args.get("path", ""), timeout=120)
-        else:
-            r = {"error": f"unknown tool {name}"}
-    except (WorkerError, FileNotFoundError) as exc:
-        r = {"error": str(exc)}
-    out = json.dumps({k: v for k, v in r.items() if k != "id"},
-                     ensure_ascii=False, default=repr)
+        result = asyncio.run(server.mcp.call_tool(name, args))
+    except Exception as exc:  # a failed tool must not end the conversation
+        return json.dumps({"error": f"{type(exc).__name__}: {exc}"})
+    blocks = result[0] if isinstance(result, tuple) else result
+    out = "\n".join(getattr(b, "text", "") for b in blocks)
     if len(out) > MAX_TOOL_CHARS:
-        out = out[:MAX_TOOL_CHARS] + f'... [truncated, {len(out)} chars total]'
+        out = out[:MAX_TOOL_CHARS] + f"... [truncated, {len(out)} chars total]"
     return out
 
 
@@ -200,7 +97,9 @@ class AgentSession:
 
     def __init__(self, cfg: dict | None = None, bridge: ArcPyBridge | None = None):
         self.cfg = cfg if cfg is not None else load_config()
-        self.bridge = bridge or ArcPyBridge()
+        # Tools run through the MCP server, so share its bridge - one ArcGIS
+        # session per process, not one per front end.
+        self.bridge = bridge or server.bridge
         self.messages: list = []
 
     @property
@@ -230,8 +129,8 @@ class AgentSession:
         import anthropic
         client = anthropic.Anthropic(
             api_key=os.environ.get("ANTHROPIC_API_KEY") or self.cfg.get("api_key"))
-        tools = [{"name": n, "description": d, "input_schema": schema_for(p)}
-                 for n, d, p in TOOL_SPECS]
+        tools = [{"name": n, "description": d, "input_schema": schema}
+                 for n, d, schema in tool_defs()]
         self.messages.append({"role": "user", "content": user_text})
         while True:
             try:
@@ -258,7 +157,7 @@ class AgentSession:
             results = []
             for c in calls:
                 emit({"kind": "tool_start", "tool": c.name})
-                out = dispatch(self.bridge, c.name, dict(c.input))
+                out = dispatch(c.name, dict(c.input))
                 ok = '"error"' not in out[:200]
                 emit({"kind": "tool_end", "tool": c.name, "ok": ok})
                 results.append({"type": "tool_result", "tool_use_id": c.id, "content": out})
@@ -270,8 +169,8 @@ class AgentSession:
             api_key=os.environ.get("OPENAI_API_KEY") or self.cfg.get("api_key") or "local",
             base_url=self.cfg.get("base_url") or None)
         tools = [{"type": "function",
-                  "function": {"name": n, "description": d, "parameters": schema_for(p)}}
-                 for n, d, p in TOOL_SPECS]
+                  "function": {"name": n, "description": d, "parameters": schema}}
+                 for n, d, schema in tool_defs()]
         if not self.messages:
             self.messages.append({"role": "system", "content": SYSTEM})
         self.messages.append({"role": "user", "content": user_text})
@@ -301,7 +200,7 @@ class AgentSession:
                     args = json.loads(tc.function.arguments or "{}")
                 except json.JSONDecodeError:
                     args = {}
-                out = dispatch(self.bridge, tc.function.name, args)
+                out = dispatch(tc.function.name, args)
                 ok = '"error"' not in out[:200]
                 emit({"kind": "tool_end", "tool": tc.function.name, "ok": ok})
                 self.messages.append({"role": "tool", "tool_call_id": tc.id, "content": out})
