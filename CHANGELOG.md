@@ -28,6 +28,8 @@ While the version is below 1.0.0, minor bumps may include breaking changes.
 - `.gitattributes` normalises line endings (LF in the repository, CRLF for
   Windows scripts), ending the checkout warnings on every commit.
 - Ruff configuration added; the codebase is lint-clean.
+- Dependency floors raised to the versions actually tested: `mcp>=1.28.1`,
+  `anthropic>=0.120.0`, `openai>=2.48.0`, `pytest>=9.1.1`, `ruff>=0.16.0`.
 
 ### Fixed
 - `bridge.py` now chains the underlying timeout exception (`raise ... from`)
