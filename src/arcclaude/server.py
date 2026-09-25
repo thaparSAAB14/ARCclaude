@@ -10,6 +10,7 @@ import json
 
 from mcp.server.fastmcp import FastMCP
 
+from . import mailbox
 from .bridge import ArcPyBridge, WorkerError
 from .live import live_execute
 
@@ -285,6 +286,39 @@ def restart_session() -> str:
         return json.dumps({"restarted": True, **info}, default=repr)
     except (WorkerError, FileNotFoundError) as exc:
         return json.dumps({"error": str(exc)})
+
+
+@mcp.tool()
+def read_chat() -> str:
+    """Read what the user has typed into the ARCclaude pane inside ArcGIS Pro
+    and not yet had answered.
+
+    Returns "(no new messages)" when nothing is waiting — it never blocks, so
+    poll it every few seconds while you are working with this user. Reading a
+    message marks it delivered, so each one arrives once. Answer with send_chat
+    rather than in your own window: the point is that the user never has to
+    switch away from Pro."""
+    msgs = mailbox.take_user()
+    if not msgs:
+        return "(no new messages)"
+    return "\n".join(f"[{i + 1}] {m.get('text', '')}" for i, m in enumerate(msgs))
+
+
+@mcp.tool()
+def send_chat(text: str) -> str:
+    """Show a message to the user in the ARCclaude pane inside ArcGIS Pro.
+
+    Use it for every reply to something read_chat gave you, and for progress
+    notes during long jobs, so the user can follow along without leaving the
+    map."""
+    text = (text or "").strip()
+    if not text:
+        return json.dumps({"error": "nothing to send - pass the reply as 'text'"})
+    mailbox.post_reply(text)
+    waiting = mailbox.pending()[1]
+    if waiting > 1:
+        return f"queued for the ARCclaude pane ({waiting} replies waiting to be shown)"
+    return "shown in the ARCclaude pane"
 
 
 def main() -> None:
