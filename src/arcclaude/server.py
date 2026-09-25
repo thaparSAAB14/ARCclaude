@@ -315,10 +315,14 @@ def send_chat(text: str) -> str:
     if not text:
         return json.dumps({"error": "nothing to send - pass the reply as 'text'"})
     mailbox.post_reply(text)
+    # Never claim the user saw it. Posting only writes an out_*.json; the pane
+    # reads and deletes it, so the queue emptying is the only delivery evidence
+    # there is — and until the pane exists, nothing drains it at all.
     waiting = mailbox.pending()[1]
     if waiting > 1:
-        return f"queued for the ARCclaude pane ({waiting} replies waiting to be shown)"
-    return "shown in the ARCclaude pane"
+        return (f"queued for the ARCclaude pane - {waiting} replies are waiting, "
+                f"so nothing is reading them yet")
+    return "queued for the ARCclaude pane"
 
 
 def main() -> None:

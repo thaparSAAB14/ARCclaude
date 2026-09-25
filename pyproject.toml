@@ -14,7 +14,10 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-dependencies = ["mcp>=1.28.1", "anthropic>=0.120.0", "openai>=2.48.0"]
+# mcp is capped below 2: that release renames FastMCP to MCPServer and changes
+# other APIs, so an uncapped floor lets CI resolve a major this code cannot
+# import. Lift the cap in a migration change, not by accident.
+dependencies = ["mcp>=1.28.1,<2", "anthropic>=0.120.0", "openai>=2.48.0"]
 
 [project.scripts]
 arcclaude = "arcclaude.cli:main"

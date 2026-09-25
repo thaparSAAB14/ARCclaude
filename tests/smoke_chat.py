@@ -52,16 +52,20 @@ assert "then export a PNG" in drained, drained
 assert drained.index("clip") < drained.index("then export"), "messages arrived out of order"
 assert read_chat() == "(no new messages)", "messages replayed after delivery"
 
-# replies travel the other way and do not leak into the inbox
-assert send_chat("clipped: 2,883 -> 1,204 features") == "shown in the ARCclaude pane"
+# replies travel the other way and do not leak into the inbox.
+# The status must never claim the user saw it: posting only writes a file, and
+# until the pane drains it nothing has been shown to anybody.
+posted = send_chat("clipped: 2,883 -> 1,204 features")
+assert posted == "queued for the ARCclaude pane", posted
+assert "shown" not in posted, "send_chat must not claim delivery it cannot observe"
 assert read_chat() == "(no new messages)", "a reply surfaced as a user message"
 shown = [m["text"] for m in mailbox.take_replies()]
 assert shown == ["clipped: 2,883 -> 1,204 features"], shown
 
-# a backlog is reported honestly rather than silently dropped
+# a backlog means nothing is reading, and the status should say so
 send_chat("one")
 second = send_chat("two")
-assert "2 replies waiting" in second, second
+assert "2 replies are waiting" in second and "nothing is reading" in second, second
 assert len(mailbox.take_replies()) == 2
 
 # an empty reply is refused, not queued as a blank bubble
@@ -77,6 +81,41 @@ assert [m["text"] for m in mailbox.take_user()] == ["still here after a reload"]
 
 mailbox.reset()
 assert mailbox.pending() == (0, 0)
+
+# Two readers draining at once must not both get the same message. Reading
+# first and deleting after would: both see the file, both parse it, and the
+# second delete merely fails. 300 messages is enough for the overlap to bite.
+import threading  # noqa: E402
+
+for i in range(300):
+    mailbox.post_user(f"race{i}")
+
+collected: list[list[dict]] = []
+lock = threading.Lock()
+
+
+def _drain_concurrently() -> None:
+    got = mailbox.take_user()
+    with lock:
+        collected.append(got)
+
+
+threads = [threading.Thread(target=_drain_concurrently) for _ in range(4)]
+for t in threads:
+    t.start()
+for t in threads:
+    t.join()
+
+seen = [m["text"] for batch in collected for m in batch]
+assert len(seen) == len(set(seen)), (
+    f"a message was delivered twice: {len(seen)} delivered, {len(set(seen))} unique"
+)
+assert set(seen) == {f"race{i}" for i in range(300)}, (
+    f"messages were lost: {300 - len(set(seen))} missing"
+)
+assert mailbox.pending() == (0, 0), "claimed files were left behind"
+
+mailbox.reset()
 
 import shutil  # noqa: E402
 

@@ -6,9 +6,11 @@ directory carries the conversation, so there is no second transport to install,
 secure or explain.
 
 One file per message, written to .tmp and renamed into place, exactly as live.py
-does. That is what makes it race-free: a reader only ever sees complete files,
-and draining is a delete, so two processes cannot lose each other's writes the
-way a shared inbox.json would.
+does. Writers never collide: a reader only ever sees complete files, and two
+writers cannot lose each other's messages the way a shared inbox.json would.
+
+Readers are serialised by a lock rather than by the filesystem — see _drain for
+why Windows leaves no cheaper option.
 
   in_*.json   the user typed this in Pro   -> the AI reads it with read_chat
   out_*.json  the AI answered              -> the pane shows it
@@ -22,6 +24,7 @@ from __future__ import annotations
 import itertools
 import json
 import os
+import threading
 import time
 import uuid
 from pathlib import Path
@@ -49,19 +52,36 @@ def _post(prefix: str, text: str) -> Path:
     return final
 
 
+# One drain at a time in this process. Windows will not give us a cheaper
+# guarantee: measured under four concurrent readers, both os.unlink and
+# os.rename reported success for the SAME file more than once (651 "successful"
+# claims for 300 files), because a delete-pending entry still answers. So a
+# filesystem-level claim cannot be the serialisation point here, and this lock
+# is. It makes the case that actually occurs — several threads inside the MCP
+# server, or inside the pane — exactly-once and deterministic.
+# ponytail: in-process lock. Two separate processes draining the SAME direction
+# at once could still double-deliver; that needs a real cross-process lock
+# (msvcrt.locking / a lock file), and it is not a shape this product has — the
+# server owns `in_*` and the pane owns `out_*`.
+_drain_lock = threading.Lock()
+
+
 def _drain(prefix: str) -> list[dict]:
+    """Everything waiting in one direction, delivered once."""
     if not CHAT_DIR.exists():
         return []
     out = []
-    for path in sorted(CHAT_DIR.glob(f"{prefix}_*.json")):
-        try:
-            out.append(json.loads(path.read_text(encoding="utf-8")))
-        except (OSError, ValueError):
-            pass  # only a truncated leftover can land here; drop it either way
-        try:
-            path.unlink()
-        except OSError:
-            pass
+    with _drain_lock:
+        for path in sorted(CHAT_DIR.glob(f"{prefix}_*.json")):
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except ValueError:
+                path.unlink(missing_ok=True)  # corrupt: drop, do not retry forever
+                continue
+            except OSError:
+                continue  # vanished between the glob and the read
+            path.unlink(missing_ok=True)
+            out.append(payload)
     return out
 
 
@@ -96,10 +116,10 @@ def pending() -> tuple[int, int]:
 
 
 def reset() -> None:
-    """Tests only: forget every queued message."""
+    """Tests only: forget every queued message, including any half-written or
+    claimed-but-not-deleted leftovers."""
     if not CHAT_DIR.exists():
         return
-    for path in CHAT_DIR.glob("*.json"):
-        path.unlink(missing_ok=True)
-    for path in CHAT_DIR.glob("*.tmp"):
-        path.unlink(missing_ok=True)
+    for path in CHAT_DIR.iterdir():
+        if path.is_file():
+            path.unlink(missing_ok=True)
