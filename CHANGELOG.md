@@ -9,6 +9,14 @@ While the version is below 1.0.0, minor bumps may include breaking changes.
 ## [Unreleased]
 
 ### Added
+- **`read_chat` / `send_chat`** — a chat relay, so an AI assistant can answer
+  the user inside ArcGIS Pro instead of in its own window. Messages ride the
+  Live Link's existing file queue (`~/.arcclaude/live/chat/`, one file per
+  message, atomic rename), adding no second transport and no new dependency.
+  `read_chat` never blocks: it returns `(no new messages)` and the caller
+  polls, so nothing holds Pro's main thread. Server half only for now — the
+  add-in pane cannot yet post into the queue or render replies, so the tools
+  are not reachable from the UI.
 - **`export_to_qgis`** — convert an ArcGIS Pro project to a QGIS project
   (`.qgz`), carrying over layers, order, visibility, definition queries, CRS
   and symbology (single, categorized and graduated renderers). The project is
